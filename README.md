@@ -1,2 +1,2 @@
 # et_tt_live
-tool for tiktok live
+tool for tiktok live.
