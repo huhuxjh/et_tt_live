@@ -47,4 +47,4 @@ if __name__ == '__main__':
     product = lark_util.query_product_script(product_sheet, product_range)
     # 获取助播脚本
     scenes = lark_util.query_assist_script(assist_sheet, assist_range)
-    start(browserId, scenes, product, ref_speaker_name, device_i, obs_port)
+    start(browserId, scenes, product, ref_speaker_name, device_id, obs_port)

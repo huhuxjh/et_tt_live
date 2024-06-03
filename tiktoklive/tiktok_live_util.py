@@ -304,23 +304,29 @@ def obs_instance(obs_port):
         print(f"================================ !!!")
         scriptMgr = OBScriptManager(obs_port)
         scriptMgr.start()
-        idx = 0
         layers = []
-        for n in range(1, 20):
+        for n in range(1, 37):
             layers.append(f"product_{n}")
+        selected = set()
+        def get_random_layer(lll, selected):
+            if len(selected) == len(lll):
+                selected.clear()
+            while True:
+                random_layer = random.choice(lll)
+                if random_layer not in selected:
+                    selected.add(random_layer)
+                    return random_layer
         print(f"================================ obs start {obs_port} !!!")
         while True:
-            if idx >= len(layers):
-                idx = 0
-            scriptMgr.set_current_layer_queue(layers[idx])
-            idx+=1
+            scriptMgr.set_current_layer_queue(get_random_layer(layers, selected))
             if keyboard.is_pressed('q'):
                 print("Exiting the OBScriptManager work, Disconnnect from obs !!!!!!!.")
                 scriptMgr.stop()
                 break
-            time.sleep(random.randint(5, 10))
+            time.sleep(random.randint(10, 40))
 
     print("================================ obs start")
     thread = threading.Thread(target=obs_loop)
     thread.daemon = True
     thread.start()
+

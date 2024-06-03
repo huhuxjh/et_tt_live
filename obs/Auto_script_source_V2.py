@@ -48,7 +48,7 @@ class EventObserver:
                 resp = self._request.get_scene_item_transform(self._curScene, item['sceneItemId'])
                 # trans = resp.scene_item_transform
                 trans = {}
-                trans['rotation'] = random.randint(-5, 0)
+                # trans['rotation'] = random.randint(-3, 3)
                 scale = random.uniform(1.0, 1.1)
                 trans['scaleX'] = scale
                 trans['scaleY'] = scale
@@ -179,11 +179,11 @@ class OBScriptManager :
         self._videoInputs = []
         response = self._observer._request.get_input_list()
         for input in response.inputs:
-            if input["inputKind"] == 'ffmpeg_source' : #视频源输入
+            if input["inputKind"] == 'ffmpeg_source' and "product" in input["inputName"]: #视频源输入
                 settingResp = self._observer._request.get_input_settings(input["inputName"])
                 settings : dict = settingResp.input_settings 
                 #视频源的循环模式一定关闭，不然无法触发on_media_input_playback_ended事件
-                if input["inputName"] != "background" :
+                if input["inputName"] != "background":
                     self._observer._request.set_input_settings(input["inputName"], {"looping" : False, "speed_percent" : 100}, True)
                 # if settings.get('looping') is None or settings["looping"] == True :
                 settings["looping"] = False 
