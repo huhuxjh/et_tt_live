@@ -1,0 +1,8 @@
+2024-05-29 00:17:57,268 - E:\tiktok\tiktok\bit_api.py:14 - INFO: 打开browser:{'success': False, 'msg': 'token 失效，请检查登录状态'}
+2024-05-29 00:17:57,268 - E:\tiktok\tiktok\chrome_utils.py:16 - ERROR: 打开浏览器窗口失败
+2024-05-29 00:19:18,201 - E:\tiktok\tiktok\bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:59317/devtools/browser/4ebb21b0-26f3-4361-be91-72cefb0f6207', 'http': '127.0.0.1:59317', 'coreVersion': '122', 'driver': 'C:\\Users\\1\\AppData\\Roaming\\BitBrowser\\chromedriver\\122\\chromedriver.exe', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 7824}}
+2024-05-29 00:19:18,202 - E:\tiktok\tiktok\chrome_utils.py:18 - INFO: C:\Users\1\AppData\Roaming\BitBrowser\chromedriver\122\chromedriver.exe
+2024-05-29 00:19:18,202 - E:\tiktok\tiktok\chrome_utils.py:19 - INFO: 127.0.0.1:59317
+2024-05-29 00:24:57,957 - E:\tiktok\tiktok\bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:59317/devtools/browser/4ebb21b0-26f3-4361-be91-72cefb0f6207', 'http': '127.0.0.1:59317', 'coreVersion': '122', 'driver': 'C:\\Users\\1\\AppData\\Roaming\\BitBrowser\\chromedriver\\122\\chromedriver.exe', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 7824}}
+2024-05-29 00:24:57,958 - E:\tiktok\tiktok\chrome_utils.py:18 - INFO: C:\Users\1\AppData\Roaming\BitBrowser\chromedriver\122\chromedriver.exe
+2024-05-29 00:24:57,958 - E:\tiktok\tiktok\chrome_utils.py:19 - INFO: 127.0.0.1:59317

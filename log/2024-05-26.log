@@ -1,0 +1,4 @@
+2024-05-26 23:33:51,987 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': False, 'msg': 'token 失效，请检查登录状态'}
+2024-05-26 23:33:51,992 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:16 - ERROR: 打开浏览器窗口失败
+2024-05-26 23:37:47,404 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': False, 'msg': '请传入 id'}
+2024-05-26 23:37:47,404 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:16 - ERROR: 打开浏览器窗口失败

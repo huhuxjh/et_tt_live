@@ -1,0 +1,199 @@
+2024-05-20 14:36:38,983 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 14:36:38,984 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 14:36:38,984 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 14:37:42,183 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 14:37:42,183 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 14:37:42,183 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 14:37:47,971 - /Users/xujianhua/duowan/wayout/tiktok/driver_utils.py:87 - INFO: 获取元素有点慢:div.tiktok-1c9cfuz-DivChatMessageList
+2024-05-20 14:37:59,335 - /Users/xujianhua/duowan/wayout/tiktok/driver_utils.py:84 - ERROR: 获取元素失败:div.tiktok-1c9cfuz-DivChatMessageList
+2024-05-20 14:39:58,936 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 14:39:58,937 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 14:39:58,937 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 14:44:32,346 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 14:44:32,347 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 14:44:32,347 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 14:45:16,204 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 14:45:16,204 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 14:45:16,204 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 14:59:45,256 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 14:59:45,256 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 14:59:45,257 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 15:06:48,651 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 15:06:48,652 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 15:06:48,652 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 15:07:44,430 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 15:07:44,430 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 15:07:44,430 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 15:08:29,147 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 15:08:29,148 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 15:08:29,148 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 15:10:23,682 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 15:10:23,683 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 15:10:23,683 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 15:10:43,568 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:32 - ERROR: 启动webdriver失败，重试
+2024-05-20 15:10:43,569 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:33 - ERROR: Message: unknown error: unhandled inspector error: {"code":-32000,"message":"Target crashed"}
+  (Session info: chrome=122.0.6261.170)
+Stacktrace:
+0   chromedriver                        0x000000010c1972a8 chromedriver + 4625064
+1   chromedriver                        0x000000010c18ee53 chromedriver + 4591187
+2   chromedriver                        0x000000010bd8de6a chromedriver + 392810
+3   chromedriver                        0x000000010bd75082 chromedriver + 290946
+4   chromedriver                        0x000000010bd7386b chromedriver + 284779
+5   chromedriver                        0x000000010bd73baa chromedriver + 285610
+6   chromedriver                        0x000000010bd72671 chromedriver + 280177
+7   chromedriver                        0x000000010bd79af2 chromedriver + 310002
+8   chromedriver                        0x000000010bd72417 chromedriver + 279575
+9   chromedriver                        0x000000010bd7465d chromedriver + 288349
+10  chromedriver                        0x000000010bd7381c chromedriver + 284700
+11  chromedriver                        0x000000010bd73baa chromedriver + 285610
+12  chromedriver                        0x000000010bd72671 chromedriver + 280177
+13  chromedriver                        0x000000010bd69cf2 chromedriver + 244978
+14  chromedriver                        0x000000010bd72417 chromedriver + 279575
+15  chromedriver                        0x000000010bd71a8d chromedriver + 277133
+16  chromedriver                        0x000000010bd7169e chromedriver + 276126
+17  chromedriver                        0x000000010bd90002 chromedriver + 401410
+18  chromedriver                        0x000000010bd6405f chromedriver + 221279
+19  chromedriver                        0x000000010bd63a5f chromedriver + 219743
+20  chromedriver                        0x000000010be08a51 chromedriver + 895569
+21  chromedriver                        0x000000010bdfb613 chromedriver + 841235
+22  chromedriver                        0x000000010bdcc3da chromedriver + 648154
+23  chromedriver                        0x000000010bdccd1e chromedriver + 650526
+24  chromedriver                        0x000000010c157a70 chromedriver + 4364912
+25  chromedriver                        0x000000010c15ce36 chromedriver + 4386358
+26  chromedriver                        0x000000010c13c6de chromedriver + 4253406
+27  chromedriver                        0x000000010c15db79 chromedriver + 4389753
+28  chromedriver                        0x000000010c12ea29 chromedriver + 4196905
+29  chromedriver                        0x000000010c17db28 chromedriver + 4520744
+30  chromedriver                        0x000000010c17dd07 chromedriver + 4521223
+31  chromedriver                        0x000000010c18ea93 chromedriver + 4590227
+32  libsystem_pthread.dylib             0x00007fff204998fc _pthread_start + 224
+33  libsystem_pthread.dylib             0x00007fff20495443 thread_start + 15
+Traceback (most recent call last):
+  File "/Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py", line 28, in get_driver_internal
+    driver = uc.Chrome(port=port,driver_executable_path='chrome_driver/chromedriver')
+  File "/Users/xujianhua/duowan/wayout/tiktok/und/__init__.py", line 422, in __init__
+    super(Chrome, self).__init__(
+  File "/opt/miniconda3/envs/web_input/lib/python3.9/site-packages/selenium/webdriver/chrome/webdriver.py", line 80, in __init__
+    super().__init__(
+  File "/opt/miniconda3/envs/web_input/lib/python3.9/site-packages/selenium/webdriver/chromium/webdriver.py", line 104, in __init__
+    super().__init__(
+  File "/opt/miniconda3/envs/web_input/lib/python3.9/site-packages/selenium/webdriver/remote/webdriver.py", line 286, in __init__
+    self.start_session(capabilities, browser_profile)
+  File "/Users/xujianhua/duowan/wayout/tiktok/und/__init__.py", line 682, in start_session
+    super(selenium.webdriver.chrome.webdriver.WebDriver, self).start_session(
+  File "/opt/miniconda3/envs/web_input/lib/python3.9/site-packages/selenium/webdriver/remote/webdriver.py", line 378, in start_session
+    response = self.execute(Command.NEW_SESSION, parameters)
+  File "/opt/miniconda3/envs/web_input/lib/python3.9/site-packages/selenium/webdriver/remote/webdriver.py", line 440, in execute
+    self.error_handler.check_response(response)
+  File "/opt/miniconda3/envs/web_input/lib/python3.9/site-packages/selenium/webdriver/remote/errorhandler.py", line 245, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.WebDriverException: Message: unknown error: unhandled inspector error: {"code":-32000,"message":"Target crashed"}
+  (Session info: chrome=122.0.6261.170)
+Stacktrace:
+0   chromedriver                        0x000000010c1972a8 chromedriver + 4625064
+1   chromedriver                        0x000000010c18ee53 chromedriver + 4591187
+2   chromedriver                        0x000000010bd8de6a chromedriver + 392810
+3   chromedriver                        0x000000010bd75082 chromedriver + 290946
+4   chromedriver                        0x000000010bd7386b chromedriver + 284779
+5   chromedriver                        0x000000010bd73baa chromedriver + 285610
+6   chromedriver                        0x000000010bd72671 chromedriver + 280177
+7   chromedriver                        0x000000010bd79af2 chromedriver + 310002
+8   chromedriver                        0x000000010bd72417 chromedriver + 279575
+9   chromedriver                        0x000000010bd7465d chromedriver + 288349
+10  chromedriver                        0x000000010bd7381c chromedriver + 284700
+11  chromedriver                        0x000000010bd73baa chromedriver + 285610
+12  chromedriver                        0x000000010bd72671 chromedriver + 280177
+13  chromedriver                        0x000000010bd69cf2 chromedriver + 244978
+14  chromedriver                        0x000000010bd72417 chromedriver + 279575
+15  chromedriver                        0x000000010bd71a8d chromedriver + 277133
+16  chromedriver                        0x000000010bd7169e chromedriver + 276126
+17  chromedriver                        0x000000010bd90002 chromedriver + 401410
+18  chromedriver                        0x000000010bd6405f chromedriver + 221279
+19  chromedriver                        0x000000010bd63a5f chromedriver + 219743
+20  chromedriver                        0x000000010be08a51 chromedriver + 895569
+21  chromedriver                        0x000000010bdfb613 chromedriver + 841235
+22  chromedriver                        0x000000010bdcc3da chromedriver + 648154
+23  chromedriver                        0x000000010bdccd1e chromedriver + 650526
+24  chromedriver                        0x000000010c157a70 chromedriver + 4364912
+25  chromedriver                        0x000000010c15ce36 chromedriver + 4386358
+26  chromedriver                        0x000000010c13c6de chromedriver + 4253406
+27  chromedriver                        0x000000010c15db79 chromedriver + 4389753
+28  chromedriver                        0x000000010c12ea29 chromedriver + 4196905
+29  chromedriver                        0x000000010c17db28 chromedriver + 4520744
+30  chromedriver                        0x000000010c17dd07 chromedriver + 4521223
+31  chromedriver                        0x000000010c18ea93 chromedriver + 4590227
+32  libsystem_pthread.dylib             0x00007fff204998fc _pthread_start + 224
+33  libsystem_pthread.dylib             0x00007fff20495443 thread_start + 15
+
+2024-05-20 15:10:53,353 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 15:10:53,353 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 15:10:53,353 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 15:13:11,900 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 15:13:11,900 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 15:13:11,900 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 15:20:24,403 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 15:20:24,403 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 15:20:24,403 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 15:20:46,779 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 15:20:46,779 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 15:20:46,779 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 15:20:57,687 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 15:20:57,687 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 15:20:57,687 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 15:41:50,249 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 15:41:50,252 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 15:41:50,252 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 15:51:17,398 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 15:51:17,399 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 15:51:17,399 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 15:51:39,766 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 15:51:39,766 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 15:51:39,766 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 16:18:03,099 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 16:18:03,099 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 16:18:03,100 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 16:18:26,373 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 16:18:26,374 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 16:18:26,374 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 16:30:38,480 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 16:30:38,481 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 16:30:38,481 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 16:48:13,509 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 16:48:13,510 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 16:48:13,510 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 16:56:46,762 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 16:56:46,765 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 16:56:46,765 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 16:58:21,237 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 16:58:21,238 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 16:58:21,238 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 17:12:43,285 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 17:12:43,286 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 17:12:43,286 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 17:14:50,513 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 17:14:50,513 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 17:14:50,513 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 17:18:24,272 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 17:18:24,272 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 17:18:24,272 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 17:34:28,593 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 17:34:28,594 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 17:34:28,594 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 17:37:00,150 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 17:37:00,150 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 17:37:00,150 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 17:37:31,903 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 17:37:31,903 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 17:37:31,903 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 17:55:00,601 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 17:55:00,602 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 17:55:00,602 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 17:55:30,147 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 17:55:30,148 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 17:55:30,148 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 17:57:57,278 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 17:57:57,279 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 17:57:57,279 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378
+2024-05-20 17:59:02,083 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:61378/devtools/browser/386435f1-d18d-43e6-81f9-6e7313eb82a3', 'http': '127.0.0.1:61378', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 5417}}
+2024-05-20 17:59:02,084 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-20 17:59:02,084 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:61378

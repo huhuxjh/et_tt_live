@@ -1,0 +1,183 @@
+2024-05-28 00:10:28,982 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:55363/devtools/browser/7c7ddd7e-b904-4f30-86b0-bb724cf04219', 'http': '127.0.0.1:55363', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 38490}}
+2024-05-28 00:10:28,983 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-28 00:10:28,983 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:55363
+2024-05-28 00:10:42,678 - /Users/xujianhua/duowan/wayout/tiktok/driver_utils.py:87 - INFO: 获取元素有点慢:div[data-e2e="social-message"]
+2024-05-28 00:10:54,027 - /Users/xujianhua/duowan/wayout/tiktok/driver_utils.py:84 - ERROR: 获取元素失败:div[data-e2e="social-message"]
+2024-05-28 00:10:59,903 - /Users/xujianhua/duowan/wayout/tiktok/driver_utils.py:87 - INFO: 获取元素有点慢:div[data-e2e="chat-message"]
+2024-05-28 00:11:11,301 - /Users/xujianhua/duowan/wayout/tiktok/driver_utils.py:84 - ERROR: 获取元素失败:div[data-e2e="chat-message"]
+2024-05-28 00:11:19,806 - /Users/xujianhua/duowan/wayout/tiktok/driver_utils.py:87 - INFO: 获取元素有点慢:div[data-e2e="social-message"]
+2024-05-28 00:11:31,254 - /Users/xujianhua/duowan/wayout/tiktok/driver_utils.py:84 - ERROR: 获取元素失败:div[data-e2e="social-message"]
+2024-05-28 00:13:25,608 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:55363/devtools/browser/7c7ddd7e-b904-4f30-86b0-bb724cf04219', 'http': '127.0.0.1:55363', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 38490}}
+2024-05-28 00:13:25,608 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-28 00:13:25,609 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:55363
+2024-05-28 00:27:22,570 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:55363/devtools/browser/7c7ddd7e-b904-4f30-86b0-bb724cf04219', 'http': '127.0.0.1:55363', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 38490}}
+2024-05-28 00:27:22,570 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-28 00:27:22,570 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:55363
+2024-05-28 00:27:48,337 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:55363/devtools/browser/7c7ddd7e-b904-4f30-86b0-bb724cf04219', 'http': '127.0.0.1:55363', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 38490}}
+2024-05-28 00:27:48,337 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-28 00:27:48,337 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:55363
+2024-05-28 00:28:05,987 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:55363/devtools/browser/7c7ddd7e-b904-4f30-86b0-bb724cf04219', 'http': '127.0.0.1:55363', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 38490}}
+2024-05-28 00:28:05,988 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-28 00:28:05,988 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:55363
+2024-05-28 14:43:04,639 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:55363/devtools/browser/7c7ddd7e-b904-4f30-86b0-bb724cf04219', 'http': '127.0.0.1:55363', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 38490}}
+2024-05-28 14:43:04,640 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-28 14:43:04,640 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:55363
+2024-05-28 14:58:03,409 - /Users/xujianhua/duowan/wayout/tiktok/bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:55363/devtools/browser/7c7ddd7e-b904-4f30-86b0-bb724cf04219', 'http': '127.0.0.1:55363', 'coreVersion': '122', 'driver': '/Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 38490}}
+2024-05-28 14:58:03,410 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:18 - INFO: /Users/xujianhua/Library/Application Support/BitBrowser/chromedriver/122/chromedriver
+2024-05-28 14:58:03,410 - /Users/xujianhua/duowan/wayout/tiktok/chrome_utils.py:19 - INFO: 127.0.0.1:55363
+2024-05-28 23:53:37,665 - E:\tiktok\tiktok\bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:58208/devtools/browser/6de44e98-87fb-42c2-ad25-ae4448b4d82c', 'http': '127.0.0.1:58208', 'coreVersion': '122', 'driver': 'C:\\Users\\1\\AppData\\Roaming\\BitBrowser\\chromedriver\\122\\chromedriver.exe', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 33364}}
+2024-05-28 23:53:37,666 - E:\tiktok\tiktok\chrome_utils.py:18 - INFO: C:\Users\1\AppData\Roaming\BitBrowser\chromedriver\122\chromedriver.exe
+2024-05-28 23:53:37,666 - E:\tiktok\tiktok\chrome_utils.py:19 - INFO: 127.0.0.1:58208
+2024-05-28 23:53:47,664 - E:\tiktok\tiktok\chrome_utils.py:32 - ERROR: 启动webdriver失败，重试
+2024-05-28 23:53:47,664 - E:\tiktok\tiktok\chrome_utils.py:33 - ERROR: Message: unknown error: cannot connect to chrome at 127.0.0.1:58208
+from session not created: This version of ChromeDriver only supports Chrome version 114
+Current browser version is 122.0.6261.170
+Stacktrace:
+Backtrace:
+	GetHandleVerifier [0x0092A813+48355]
+	(No symbol) [0x008BC4B1]
+	(No symbol) [0x007C5358]
+	(No symbol) [0x007E61AC]
+	(No symbol) [0x007E06B4]
+	(No symbol) [0x007E0491]
+	(No symbol) [0x00810C55]
+	(No symbol) [0x0081093C]
+	(No symbol) [0x0080A536]
+	(No symbol) [0x007E82DC]
+	(No symbol) [0x007E93DD]
+	GetHandleVerifier [0x00B8AABD+2539405]
+	GetHandleVerifier [0x00BCA78F+2800735]
+	GetHandleVerifier [0x00BC456C+2775612]
+	GetHandleVerifier [0x009B51E0+616112]
+	(No symbol) [0x008C5F8C]
+	(No symbol) [0x008C2328]
+	(No symbol) [0x008C240B]
+	(No symbol) [0x008B4FF7]
+	BaseThreadInitThunk [0x760D6839+25]
+	RtlGetFullPathName_UEx [0x7783906F+1215]
+	RtlGetFullPathName_UEx [0x7783903D+1165]
+Traceback (most recent call last):
+  File "E:\tiktok\tiktok\chrome_utils.py", line 28, in get_driver_internal
+    driver = uc.Chrome(port=port,driver_executable_path='chrome_driver/chromedriver')
+  File "E:\tiktok\tiktok\und\__init__.py", line 422, in __init__
+    super(Chrome, self).__init__(
+  File "D:\anaconda3\envs\et_tts_env\lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 80, in __init__
+    super().__init__(
+  File "D:\anaconda3\envs\et_tts_env\lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 104, in __init__
+    super().__init__(
+  File "D:\anaconda3\envs\et_tts_env\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 286, in __init__
+    self.start_session(capabilities, browser_profile)
+  File "E:\tiktok\tiktok\und\__init__.py", line 682, in start_session
+    super(selenium.webdriver.chrome.webdriver.WebDriver, self).start_session(
+  File "D:\anaconda3\envs\et_tts_env\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 378, in start_session
+    response = self.execute(Command.NEW_SESSION, parameters)
+  File "D:\anaconda3\envs\et_tts_env\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 440, in execute
+    self.error_handler.check_response(response)
+  File "D:\anaconda3\envs\et_tts_env\lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 245, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.WebDriverException: Message: unknown error: cannot connect to chrome at 127.0.0.1:58208
+from session not created: This version of ChromeDriver only supports Chrome version 114
+Current browser version is 122.0.6261.170
+Stacktrace:
+Backtrace:
+	GetHandleVerifier [0x0092A813+48355]
+	(No symbol) [0x008BC4B1]
+	(No symbol) [0x007C5358]
+	(No symbol) [0x007E61AC]
+	(No symbol) [0x007E06B4]
+	(No symbol) [0x007E0491]
+	(No symbol) [0x00810C55]
+	(No symbol) [0x0081093C]
+	(No symbol) [0x0080A536]
+	(No symbol) [0x007E82DC]
+	(No symbol) [0x007E93DD]
+	GetHandleVerifier [0x00B8AABD+2539405]
+	GetHandleVerifier [0x00BCA78F+2800735]
+	GetHandleVerifier [0x00BC456C+2775612]
+	GetHandleVerifier [0x009B51E0+616112]
+	(No symbol) [0x008C5F8C]
+	(No symbol) [0x008C2328]
+	(No symbol) [0x008C240B]
+	(No symbol) [0x008B4FF7]
+	BaseThreadInitThunk [0x760D6839+25]
+	RtlGetFullPathName_UEx [0x7783906F+1215]
+	RtlGetFullPathName_UEx [0x7783903D+1165]
+
+2024-05-28 23:56:04,990 - E:\tiktok\tiktok\bit_api.py:14 - INFO: 打开browser:{'success': True, 'data': {'ws': 'ws://127.0.0.1:58208/devtools/browser/6de44e98-87fb-42c2-ad25-ae4448b4d82c', 'http': '127.0.0.1:58208', 'coreVersion': '122', 'driver': 'C:\\Users\\1\\AppData\\Roaming\\BitBrowser\\chromedriver\\122\\chromedriver.exe', 'seq': 2, 'name': 'tiktok live', 'remark': '', 'pid': 33364}}
+2024-05-28 23:56:04,991 - E:\tiktok\tiktok\chrome_utils.py:18 - INFO: C:\Users\1\AppData\Roaming\BitBrowser\chromedriver\122\chromedriver.exe
+2024-05-28 23:56:04,991 - E:\tiktok\tiktok\chrome_utils.py:19 - INFO: 127.0.0.1:58208
+2024-05-28 23:56:06,275 - E:\tiktok\tiktok\chrome_utils.py:32 - ERROR: 启动webdriver失败，重试
+2024-05-28 23:56:06,275 - E:\tiktok\tiktok\chrome_utils.py:33 - ERROR: Message: unknown error: cannot connect to chrome at 127.0.0.1:58208
+from session not created: This version of ChromeDriver only supports Chrome version 114
+Current browser version is 122.0.6261.170
+Stacktrace:
+Backtrace:
+	GetHandleVerifier [0x0092A813+48355]
+	(No symbol) [0x008BC4B1]
+	(No symbol) [0x007C5358]
+	(No symbol) [0x007E61AC]
+	(No symbol) [0x007E06B4]
+	(No symbol) [0x007E0491]
+	(No symbol) [0x00810C55]
+	(No symbol) [0x0081093C]
+	(No symbol) [0x0080A536]
+	(No symbol) [0x007E82DC]
+	(No symbol) [0x007E93DD]
+	GetHandleVerifier [0x00B8AABD+2539405]
+	GetHandleVerifier [0x00BCA78F+2800735]
+	GetHandleVerifier [0x00BC456C+2775612]
+	GetHandleVerifier [0x009B51E0+616112]
+	(No symbol) [0x008C5F8C]
+	(No symbol) [0x008C2328]
+	(No symbol) [0x008C240B]
+	(No symbol) [0x008B4FF7]
+	BaseThreadInitThunk [0x760D6839+25]
+	RtlGetFullPathName_UEx [0x7783906F+1215]
+	RtlGetFullPathName_UEx [0x7783903D+1165]
+Traceback (most recent call last):
+  File "E:\tiktok\tiktok\chrome_utils.py", line 28, in get_driver_internal
+    driver = uc.Chrome(port=port,driver_executable_path='chrome_driver/chromedriver')
+  File "E:\tiktok\tiktok\und\__init__.py", line 422, in __init__
+    super(Chrome, self).__init__(
+  File "D:\anaconda3\envs\et_tts_env\lib\site-packages\selenium\webdriver\chrome\webdriver.py", line 80, in __init__
+    super().__init__(
+  File "D:\anaconda3\envs\et_tts_env\lib\site-packages\selenium\webdriver\chromium\webdriver.py", line 104, in __init__
+    super().__init__(
+  File "D:\anaconda3\envs\et_tts_env\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 286, in __init__
+    self.start_session(capabilities, browser_profile)
+  File "E:\tiktok\tiktok\und\__init__.py", line 682, in start_session
+    super(selenium.webdriver.chrome.webdriver.WebDriver, self).start_session(
+  File "D:\anaconda3\envs\et_tts_env\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 378, in start_session
+    response = self.execute(Command.NEW_SESSION, parameters)
+  File "D:\anaconda3\envs\et_tts_env\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 440, in execute
+    self.error_handler.check_response(response)
+  File "D:\anaconda3\envs\et_tts_env\lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 245, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.WebDriverException: Message: unknown error: cannot connect to chrome at 127.0.0.1:58208
+from session not created: This version of ChromeDriver only supports Chrome version 114
+Current browser version is 122.0.6261.170
+Stacktrace:
+Backtrace:
+	GetHandleVerifier [0x0092A813+48355]
+	(No symbol) [0x008BC4B1]
+	(No symbol) [0x007C5358]
+	(No symbol) [0x007E61AC]
+	(No symbol) [0x007E06B4]
+	(No symbol) [0x007E0491]
+	(No symbol) [0x00810C55]
+	(No symbol) [0x0081093C]
+	(No symbol) [0x0080A536]
+	(No symbol) [0x007E82DC]
+	(No symbol) [0x007E93DD]
+	GetHandleVerifier [0x00B8AABD+2539405]
+	GetHandleVerifier [0x00BCA78F+2800735]
+	GetHandleVerifier [0x00BC456C+2775612]
+	GetHandleVerifier [0x009B51E0+616112]
+	(No symbol) [0x008C5F8C]
+	(No symbol) [0x008C2328]
+	(No symbol) [0x008C240B]
+	(No symbol) [0x008B4FF7]
+	BaseThreadInitThunk [0x760D6839+25]
+	RtlGetFullPathName_UEx [0x7783906F+1215]
+	RtlGetFullPathName_UEx [0x7783903D+1165]
+

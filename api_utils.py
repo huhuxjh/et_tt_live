@@ -1,0 +1,13 @@
+import sys
+import os
+import json
+
+api_key_config = {
+    "minimax": {
+        "group_id" : "1782658868262748530",
+        "api_key" : "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiLorrjlgaXljY4iLCJVc2VyTmFtZSI6IuiuuOWBpeWNjiIsIkFjY291bnQiOiIiLCJTdWJqZWN0SUQiOiIxNzgyNjU4ODY4MjcxMTM3MTM4IiwiUGhvbmUiOiIxODkwMjIxMzcyNiIsIkdyb3VwSUQiOiIxNzgyNjU4ODY4MjYyNzQ4NTMwIiwiUGFnZU5hbWUiOiIiLCJNYWlsIjoiIiwiQ3JlYXRlVGltZSI6IjIwMjQtMDUtMDkgMTA6MTk6MDEiLCJpc3MiOiJtaW5pbWF4In0.eJ5_Fh7ks1nE2Qbvi64OzFRfvpk2mf9FNcpg0pIOHEYbCV7Ml34DJ7Fw9xfxuDg69RGD0KlZYdMl7CTuGKV1cOIiC3Ksdd1qiCg8XubXVdsDqnPUdZ5tgms7imQlh4739WB8XLfc0ruFYkZBsJOppCWgu869dYSQn-a9w491miFxN4Kos_xZfyzAOdtrBUr0QmBkQ0KLbRSOZ2EJ_KWiP5RHsv7jqMwU-f24cQYLrgHlJGpK3_1KCwEFMI5N2ZX1hw0xOT7rp5lFxptFkr0NaCXPSj8Uk3OpupS8TaMFyFAxiQBTZk11L0e-dpUsbwBqQ2YA21-8HD1Y7mJjwx-Jnw"
+    }
+}
+
+def get_config(rt, key):
+    return api_key_config[rt][key]
