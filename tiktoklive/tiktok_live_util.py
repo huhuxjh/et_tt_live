@@ -273,7 +273,7 @@ async def main(ref_speaker_name):
     await asyncio.gather(t5, t6)
 
 
-def startClient(browserId, scenes, product, ref_speaker_name, device_id):
+def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_port):
     global du, script_scenes, product_script, device_index
     script_scenes = scenes
     product_script = product
@@ -283,6 +283,7 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id):
     #     du = driver_utils.DriverUtils(driver)
     #     #启动协程
     #     asyncio.run(main())
+    obs_instance(obs_port)
     play_wav_cycle()
     asyncio.run(main(ref_speaker_name))
 
@@ -294,5 +295,32 @@ def play_wav_cycle():
             time.sleep(0.1)
 
     thread = threading.Thread(target=worker)
+    thread.daemon = True
+    thread.start()
+
+from obs.Auto_script_source_V2 import *
+def obs_instance(obs_port):
+    def obs_loop():
+        print(f"================================ !!!")
+        scriptMgr = OBScriptManager(obs_port)
+        scriptMgr.start()
+        idx = 0
+        layers = []
+        for n in range(1, 20):
+            layers.append(f"product_{n}")
+        print(f"================================ obs start {obs_port} !!!")
+        while True:
+            if idx >= len(layers):
+                idx = 0
+            scriptMgr.set_current_layer_queue(layers[idx])
+            idx+=1
+            if keyboard.is_pressed('q'):
+                print("Exiting the OBScriptManager work, Disconnnect from obs !!!!!!!.")
+                scriptMgr.stop()
+                break
+            time.sleep(random.randint(5, 10))
+
+    print("================================ obs start")
+    thread = threading.Thread(target=obs_loop)
     thread.daemon = True
     thread.start()

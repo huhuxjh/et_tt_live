@@ -5,17 +5,20 @@ import tiktoklive.tiktok_live_util as tiktokUtil
 config_src_range = 'B1:B8'
 
 
-def start(browserId, scenes, product, ref_speaker_name, device_id):
+def start(browserId, scenes, product, ref_speaker_name, device_id, obs_port):
     print(f"{browserId}")
-    tiktokUtil.startClient(browserId, scenes, product, ref_speaker_name, device_id)
+    tiktokUtil.startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_port)
 
 
 if __name__ == '__main__':
     configId = ""
+    obs_port = 4455
     idx = 1
     while idx < len(sys.argv):
         if sys.argv[idx] == "--configId":
             configId = sys.argv[idx + 1]
+        if sys.argv[idx] == "--obs_port":
+            obs_port = sys.argv[idx + 1]
         idx += 1
     lark_util.request_tenant_token()
     datas = lark_util.query_range(configId, config_src_range)
@@ -44,4 +47,4 @@ if __name__ == '__main__':
     product = lark_util.query_product_script(product_sheet, product_range)
     # 获取助播脚本
     scenes = lark_util.query_assist_script(assist_sheet, assist_range)
-    start(browserId, scenes, product, ref_speaker_name, device_id)
+    start(browserId, scenes, product, ref_speaker_name, device_i, obs_port)
