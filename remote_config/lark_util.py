@@ -6,6 +6,7 @@ from lark_oapi.api.authen.v1 import *
 
 from bean.product import Product
 from bean.scene import Scene
+from bean.product import ContentItem
 
 app_id = 'cli_a6c746e54a39d013'
 app_secret = 'Qs2g6mBytqhN32CVUE1xKhxgR2iigHdi'
@@ -81,14 +82,24 @@ def query_assist_script(sheet_id, src_range):
         scenes.append(scene)
     return scenes
 
-
 def query_product_script(sheet_id, src_range):
     datas = query_range(sheet_id, src_range)
+    context = datas.pop(0)[0]
+    sys_inst = datas.pop(0)[0]
+    role_play_head = datas.pop(0)[0]
     contentList = []
-    for data in datas:
-        content = data[0]
+    for idx, val in enumerate(datas):
+        index = idx + 1
+        text = val[0]
+        keep = val[1]
+        spc_type = val[2]
+        label = val[3]
+        content = ContentItem(index, text, keep, spc_type, label)
         contentList.append(content)
-    product = Product(contentList)
+
+    role_play = '\n'.join([f'{val.index}.{val.text}' for idx, val in enumerate(contentList)])
+    role_play = f'{role_play_head}\n{role_play}'
+    product = Product(context= context, sys_inst= sys_inst, role_play_head= role_play_head, role_play= role_play, contentList= contentList)
     return product
 
 

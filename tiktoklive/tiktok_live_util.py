@@ -15,6 +15,7 @@ from et_dirs import outputs_v2
 from remote_config.et_service_util import qa_async
 from remote_config.et_service_util import tts_async
 from selenium.webdriver.common.by import By
+from bean.product import ContentItem
 
 last_chat_message = ""
 last_social_message = ""
@@ -181,20 +182,28 @@ async def chat_task():
         await asyncio.sleep(3)
 
 
-async def llm_query_task(context, sys_inst, role_play):
+async def llm_query_task():
     while True:
-        for idx, val in enumerate(product_script.contentList):
-            query = f'go to step {idx + 1}'
-            await llm_query(context, sys_inst, role_play, query)
+        for _,val in enumerate(product_script.contentList):
+            await llm_query(val)
 
 
-async def llm_query(context, sys_inst, role_play, query):
-    with timer('qa-llama_v3'):
+async def llm_query(contentItem):
+    query = f'go to step {contentItem.index}'
+    context = product_script.context
+    sys_inst = product_script.sys_inst
+    role_play = product_script.role_play
+    keep = contentItem.keep
+    # with timer('qa-llama_v3'):
+    if keep == 1:
+        an = contentItem.text
+    else:
         an = await qa_async(query, role_play, context, sys_inst, 3)
-        print(f"query put size：{query_queue.qsize()}")
-        query_queue.put(an, block=True)
-        print(f"query after put size：{query_queue.qsize()}")
-        await asyncio.sleep(1)
+    print(f"query:{query},\ncontext:{context}, \nsys_inst:{sys_inst}, \nrole_play:{role_play}, \nkeep:{keep}")
+    print(f"query put size：{query_queue.qsize()}")
+    query_queue.put(an, block=True)
+    print(f"query after put size：{query_queue.qsize()}")
+    await asyncio.sleep(1)
 
 
 async def create_tts_task(ref_speaker_name):
@@ -257,17 +266,11 @@ def play_audio():
 
 
 async def main(ref_speaker_name):
-    context = product_script.contentList.pop(0)
-    sys_inst = product_script.contentList.pop(0)
-    role_play_head = product_script.contentList.pop(0)
-    role_play = '\n'.join([f'{idx + 1}.{val}' for idx, val in enumerate(product_script.contentList)])
-    role_play = f'{role_play_head}\n{role_play}'
-
     # t1 = asyncio.create_task(enter_task())
     # t2 = asyncio.create_task(social_task())
     # t3 = asyncio.create_task(broadcast_task())
     # t4 = asyncio.create_task(chat_task())
-    t5 = asyncio.create_task(llm_query_task(context, sys_inst, role_play))
+    t5 = asyncio.create_task(llm_query_task())
     t6 = asyncio.create_task(create_tts_task(ref_speaker_name))
 
     await asyncio.gather(t5, t6)
