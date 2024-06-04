@@ -50,7 +50,7 @@ async def tts_async(text, ref_name, out_name, spc_type):
         "out_name": out_name,
         "spc_type": spc_type,
         "ref_name": ref_name,
-        "manual_seed": 64,
+        "manual_seed": 5656,
         "skip_refine_text": False
     }
     response = await post_retry(url, headers, data)
