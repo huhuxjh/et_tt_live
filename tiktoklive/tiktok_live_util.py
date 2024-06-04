@@ -198,7 +198,7 @@ async def llm_query(contentItem):
     if keep == 1:
         an = contentItem.text
     else:
-        an = await qa_async(query, role_play, context, sys_inst, 3)
+        an = await qa_async(query, role_play, context, sys_inst, 3, 1.05)
     print(f"query:{query},\ncontext:{context}, \nsys_inst:{sys_inst}, \nrole_play:{role_play}, \nkeep:{keep}")
     print(f"query put size：{query_queue.qsize()}")
     query_queue.put(an, block=True)

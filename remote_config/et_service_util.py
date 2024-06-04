@@ -15,7 +15,7 @@ async def post_retry(url, headers, data):
     return session.post(url, headers=headers, json=data)
 
 
-async def qa_async(query, role_play, context, inst_text, max_num_sentence):
+async def qa_async(query, role_play, context, inst_text, max_num_sentence, repetition_penalty):
     url = "http://127.0.0.1:9394/llm/tr"
     headers = {
         "accept": "application/json",
@@ -26,7 +26,8 @@ async def qa_async(query, role_play, context, inst_text, max_num_sentence):
         "role_play": role_play,
         "context": context,
         "inst_text": inst_text,
-        "max_num_sentence": max_num_sentence
+        "max_num_sentence": max_num_sentence,
+        "repetition_penalty": repetition_penalty
     }
     response = await post_retry(url, headers, data)
     resp_json = json.loads(response.text)
