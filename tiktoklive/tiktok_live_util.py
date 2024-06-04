@@ -27,8 +27,8 @@ last_social_message_time = 0
 social_message_min_period = 60
 enter_message_min_period = 60  # 进场欢迎最短间隔，60秒内最多发一个
 
-query_queue = queue.Queue(maxsize=10)
-tts_queue = queue.Queue(maxsize=10)
+query_queue = queue.Queue(maxsize=30)
+tts_queue = queue.Queue(maxsize=30)
 
 enter_reply_list = [
     'hello~',
@@ -199,26 +199,27 @@ async def llm_query(contentItem):
         an = contentItem.text
     else:
         an = await qa_async(query, role_play, context, sys_inst, 3, 1.05)
+    new_contentItem = ContentItem(index= contentItem.index, text= an, keep=contentItem.keep, spc_type= contentItem.spc_type, label= contentItem.label)    
     print(f"query:{query},\ncontext:{context}, \nsys_inst:{sys_inst}, \nrole_play:{role_play}, \nkeep:{keep}")
     print(f"query put size：{query_queue.qsize()}")
-    query_queue.put(an, block=True)
+    query_queue.put(new_contentItem, block=True)
     print(f"query after put size：{query_queue.qsize()}")
     await asyncio.sleep(1)
 
 
 async def create_tts_task(ref_speaker_name):
     print("create_tts_task")
-    while True:
-        for idx, val in enumerate(product_script.contentList):
-            print(f"cycle contentList: idx={idx}")
-            await create_tts(idx, ref_speaker_name)
+    while True:        
+            if query_queue.not_empty:
+                contentItem = query_queue.get()
+                await create_tts(contentItem, ref_speaker_name)
             await asyncio.sleep(1)
 
 
-async def create_tts(index, ref_speaker_name):
+async def create_tts(contentItem, ref_speaker_name):
     # todo: 配置传入
     # todo: tts 生成的名字，现在的idx仍然可能重复
-    print(f"create_tts: {index}")
+    print(f"create_tts: {contentItem.index}")
     ref_speaker = os.path.join(resources, ref_speaker_name)
     # 参考音频
     ref_audios = [ref_speaker]
@@ -230,12 +231,8 @@ async def create_tts(index, ref_speaker_name):
             ref_audios[idx] = audio
     emo_list = ['default', 'excited', 'cheerful']
     # 开始推理
-    idx_turn = index
-    print(f"start to get query_queue, empty:{query_queue.empty()}")
-    # if query_queue.empty():
-    #     return
-    an = query_queue.get()
-    print(f"end to get query_queue")
+    idx_turn = contentItem.index
+    an = contentItem.text
     select_emo = random.choice(emo_list)
     print(f'assistant>({select_emo}) ', an)
     # todo: tts转换（名字要与client绑定，要不会相互覆盖）
@@ -243,7 +240,7 @@ async def create_tts(index, ref_speaker_name):
     with timer('tts-local'):
         ref_name, _ = os.path.splitext(os.path.basename(random.choice(ref_audios)))
         output_name, _ = os.path.splitext(os.path.basename(out))
-        wav = await tts_async(an, ref_name, output_name)
+        wav = await tts_async(an, ref_name, output_name, contentItem.spc_type)
         wav = wav.replace('"', '')
         tts_queue.put(wav, block=True)
 

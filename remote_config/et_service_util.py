@@ -34,7 +34,7 @@ async def qa_async(query, role_play, context, inst_text, max_num_sentence, repet
     return resp_json['text']
 
 
-async def tts_async(text, ref_name, out_name):
+async def tts_async(text, ref_name, out_name, spc_type):
     url = "http://127.0.0.1:9394/tts/tr"
     headers = {
         "accept": "application/json",
@@ -43,7 +43,8 @@ async def tts_async(text, ref_name, out_name):
     data = {
         "text": text,
         "ref_name": ref_name,
-        "out_name": out_name
+        "out_name": out_name,
+        "spc_type": spc_type
     }
     response = await post_retry(url, headers, data)
     resp_json = json.loads(response.text)
