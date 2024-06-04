@@ -12,7 +12,7 @@ from et_base import timer, yyyymmdd, fix_mci
 from sounddevice_wrapper import play_wav_on_device
 from et_dirs import resources
 from et_dirs import outputs_v2
-from remote_config.et_service_util import qa_async
+from remote_config.et_service_util import llm_async
 from remote_config.et_service_util import tts_async
 from selenium.webdriver.common.by import By
 from bean.product import ContentItem
@@ -198,8 +198,8 @@ async def llm_query(contentItem):
     if keep == 1:
         an = contentItem.text
     else:
-        an = await qa_async(query, role_play, context, sys_inst, 3, 1.05)
-    new_contentItem = ContentItem(index= contentItem.index, text= an, keep=contentItem.keep, spc_type= contentItem.spc_type, label= contentItem.label)    
+        an = await llm_async(query, role_play, context, sys_inst, 3, 1.05)
+    new_contentItem = ContentItem(index= contentItem.index, text= an, keep=contentItem.keep, spc_type= contentItem.spc_type, label= contentItem.label)
     print(f"query:{query},\ncontext:{context}, \nsys_inst:{sys_inst}, \nrole_play:{role_play}, \nkeep:{keep}")
     print(f"query put size：{query_queue.qsize()}")
     query_queue.put(new_contentItem, block=True)
@@ -209,7 +209,7 @@ async def llm_query(contentItem):
 
 async def create_tts_task(ref_speaker_name):
     print("create_tts_task")
-    while True:        
+    while True:
             if query_queue.not_empty:
                 contentItem = query_queue.get()
                 await create_tts(contentItem, ref_speaker_name)

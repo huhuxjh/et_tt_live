@@ -15,7 +15,7 @@ async def post_retry(url, headers, data):
     return session.post(url, headers=headers, json=data)
 
 
-async def qa_async(query, role_play, context, inst_text, max_num_sentence, repetition_penalty):
+async def llm_async(query, role_play, context, inst_text, max_num_sentence, repetition_penalty):
     url = "http://127.0.0.1:9394/llm/tr"
     headers = {
         "accept": "application/json",
@@ -40,6 +40,8 @@ async def tts_async(text, ref_name, out_name, spc_type):
         "accept": "application/json",
         "Content-Type": "application/json"
     }
+    # "spc_type": "ov_v2"
+    # "spc_type": "chat_tts"
     data = {
         "text": text,
         "ref_name": ref_name,
