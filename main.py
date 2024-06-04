@@ -11,7 +11,7 @@ def start(browserId, scenes, product, ref_speaker_name, device_id, obs_port):
 
 
 if __name__ == '__main__':
-    configId = ""
+    configId = "okL6Yo"
     obs_port = 4455
     idx = 1
     while idx < len(sys.argv):

@@ -9,3 +9,7 @@ protobuf==4.21.12
 betterproto[compiler]
 betterproto
 setproctitle
+keyboard
+websocket
+websocket-client
+tomli
