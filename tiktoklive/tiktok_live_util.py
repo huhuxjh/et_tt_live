@@ -200,10 +200,9 @@ async def llm_query(contentItem):
     else:
         an = await llm_async(query, role_play, context, sys_inst, 3, 1.05)
     new_contentItem = ContentItem(index= contentItem.index, text= an, keep=contentItem.keep, spc_type= contentItem.spc_type, label= contentItem.label)
-    print(f"query:{query},\ncontext:{context}, \nsys_inst:{sys_inst}, \nrole_play:{role_play}, \nkeep:{keep}")
-    print(f"query put size：{query_queue.qsize()}")
+    print(f"query put size:{query_queue.qsize()}")
     query_queue.put(new_contentItem, block=True)
-    print(f"query after put size：{query_queue.qsize()}")
+    print(f"query after put size:{query_queue.qsize()}")
     await asyncio.sleep(1)
 
 
