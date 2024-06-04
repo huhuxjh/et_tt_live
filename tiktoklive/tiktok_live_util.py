@@ -253,7 +253,7 @@ def play_audio():
     device_list = SOUND_DEVICE_NAME
     # 如果配置了设备名字，那么通过name_to_index去转换index，保证设备名唯一
     # device_index = name_to_index(device_name)
-    print(f"start to get tts queue， size:{tts_queue.qsize()}")
+    print(f"start to get tts queue, size:{tts_queue.qsize()}")
     # if tts_queue.empty():
     #     return
     wav = tts_queue.get()
