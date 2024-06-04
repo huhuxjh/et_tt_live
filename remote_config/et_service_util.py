@@ -41,12 +41,17 @@ async def tts_async(text, ref_name, out_name, spc_type):
         "Content-Type": "application/json"
     }
     # "spc_type": "ov_v2"
+    # 以下是chatTTS参数
     # "spc_type": "chat_tts"
+    # "manual_seed": 64,        # 指定音色
+    # "skip_refine_text": False # 是否跳过推理文本语气
     data = {
         "text": text,
-        "ref_name": ref_name,
         "out_name": out_name,
-        "spc_type": spc_type
+        "spc_type": spc_type,
+        "ref_name": ref_name,
+        "manual_seed": 64,
+        "skip_refine_text": False
     }
     response = await post_retry(url, headers, data)
     resp_json = json.loads(response.text)
