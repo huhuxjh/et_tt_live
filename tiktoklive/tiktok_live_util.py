@@ -317,7 +317,8 @@ def obs_instance(obs_port):
                     return random_layer
         print(f"================================ obs start {obs_port} !!!")
         while True:
-            scriptMgr.set_current_layer_queue(get_random_layer(layers, selected))
+            if scriptMgr.is_playing() == False:
+                scriptMgr.set_current_layer(get_random_layer(layers, selected))
             if keyboard.is_pressed('q'):
                 print("Exiting the OBScriptManager work, Disconnnect from obs !!!!!!!.")
                 scriptMgr.stop()
