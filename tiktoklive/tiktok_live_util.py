@@ -196,7 +196,7 @@ async def llm_query_task():
     global live_running
     while live_running:
         for _, val in enumerate(product_script.contentList):
-            await llm_query(val)
+            if val.reproduce: await llm_query(val)
         # live_running = False
 
 
@@ -211,7 +211,9 @@ async def llm_query(contentItem):
         an = contentItem.text.replace('\n', ' ')
     else:
         an = await llm_async(query, role_play, context, sys_inst, 3, 1.05)
-    new_contentItem = ContentItem(index=contentItem.index, text=an, keep=contentItem.keep, spc_type=contentItem.spc_type, label=contentItem.label)
+    new_contentItem = ContentItem(index=contentItem.index, text=an, keep=contentItem.keep,
+                                  spc_type=contentItem.spc_type, label=contentItem.label,
+                                  reproduce=contentItem.reproduce)
     print(f"query put size:{query_queue.qsize()}")
     query_queue.put(new_contentItem, block=True)
     print(f"query after put size:{query_queue.qsize()}")
@@ -219,11 +221,14 @@ async def llm_query(contentItem):
 
 
 async def create_tts_task(ref_speaker_name):
-    print("create_tts_task")
     global live_running
-    while live_running or not query_queue.empty():
-        contentItem = query_queue.get()
-        await create_tts(contentItem, ref_speaker_name)
+    print("create_tts_task")
+    while True:
+        if not query_queue.empty():
+            contentItem = query_queue.get()
+            await create_tts(contentItem, ref_speaker_name)
+        elif not live_running:
+            break
         await asyncio.sleep(1)
 
 

@@ -6,11 +6,13 @@ class Product:
         self.role_play = role_play
         self.contentList = contentList
 
+
 class ContentItem:
-    def __init__(self, index, text, keep, spc_type, label, wav):
+    def __init__(self, index, text, keep, spc_type, label, wav='', reproduce=True):
         self.index = index
         self.text = text
         self.keep = keep
         self.spc_type = spc_type
         self.label = label
         self.wav = wav
+        self.reproduce = reproduce
