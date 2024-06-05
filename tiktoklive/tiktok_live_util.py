@@ -152,6 +152,7 @@ async def check_enter():
         await send_message(f'{enter_reply} {enter_owner_name}')
         # todo: llm and createTTS and put to urgent_queue
 
+
 async def send_message(content):
     try:
         du.input_value_by_css('div.tiktok-1l5p0r-DivEditor', content)
@@ -303,13 +304,16 @@ def play_audio():
 
 
 def drive_obs(wav, label):
-    dur = get_wav_dur(wav)
+    wav_dur = get_wav_dur(wav)
 
     # todo: drive the obs
     # 调用播放
     # obs_wrapper.play(label, None)
+
     # 获取视频列表数组 by label
     # get_play_tag_list()
+
+    # 返回数据格式
     # self.tags[tag].append({
     #     "path": os.path.join(sub_tag_dir, tag),
     #     "width": w,
@@ -317,6 +321,7 @@ def drive_obs(wav, label):
     #     "duration": video_duration,
     #     "played": False
     # })
+
     # 获取还剩下多长的播放时长,如果没在播放返回0,0
     # get_play_status
 
@@ -358,6 +363,7 @@ def is_play_prepare():
 
 
 def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_port, mode, configId):
+    global obs_wrapper
     global du, script_scenes, product_script, device_index, live_mode, config_id
     script_scenes = scenes
     product_script = product
@@ -376,14 +382,12 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
         asyncio.run(prepare(ref_speaker_name))
     elif is_play_prepare():
         if obs_port > 0:
-            global obs_wrapper
             obs_wrapper = OBScriptManager(obs_port, local_video_dir)
             obs_wrapper.start()
         play_wav_cycle()
         asyncio.run(play_prepare(ref_speaker_name))
     else:
         if obs_port > 0:
-            global obs_wrapper
             obs_wrapper = OBScriptManager(obs_port, local_video_dir)
             obs_wrapper.start()
         play_wav_cycle()
