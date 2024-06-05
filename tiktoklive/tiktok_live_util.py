@@ -7,6 +7,8 @@ import sys
 import threading
 import time
 
+import soundfile
+
 # 引用工程
 sys.path.append(os.path.abspath("E:\\ET_TTS"))
 from et_base import timer, yyyymmdd, fix_mci
@@ -340,12 +342,16 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
 def play_wav_cycle():
     def worker():
         while True:
-            play_audio()
+            try:
+                play_audio()
+            except soundfile.LibsndfileError as ignore:
+                print(ignore)
             time.sleep(0.1)
 
     thread = threading.Thread(target=worker)
     thread.daemon = True
     thread.start()
+
 
 from obs.Auto_script_source_V2 import *
 def obs_instance(obs_port):
