@@ -192,12 +192,11 @@ async def chat_task():
 
 
 async def llm_query_task():
-    running = True
-    while running:
-        print('product_script.contentList=>', len(product_script.contentList))
+    global live_running
+    while live_running:
         for _, val in enumerate(product_script.contentList):
             await llm_query(val)
-        # running = False
+        # live_running = False
 
 
 async def llm_query(contentItem):
@@ -208,7 +207,7 @@ async def llm_query(contentItem):
     keep = contentItem.keep
     # with timer('qa-llama_v3'):
     if keep == 1:
-        an = contentItem.text
+        an = contentItem.text.replace('\n', ' ')
     else:
         an = await llm_async(query, role_play, context, sys_inst, 3, 1.05)
     new_contentItem = ContentItem(index=contentItem.index, text=an, keep=contentItem.keep, spc_type=contentItem.spc_type, label=contentItem.label)
@@ -220,10 +219,10 @@ async def llm_query(contentItem):
 
 async def create_tts_task(ref_speaker_name):
     print("create_tts_task")
-    while True:
-        if query_queue.not_empty:
-            contentItem = query_queue.get()
-            await create_tts(contentItem, ref_speaker_name)
+    global live_running
+    while live_running or not query_queue.empty():
+        contentItem = query_queue.get()
+        await create_tts(contentItem, ref_speaker_name)
         await asyncio.sleep(1)
 
 
@@ -265,7 +264,6 @@ async def create_tts(contentItem, ref_speaker_name):
 
 
 def play_audio():
-    # todo:
     print("play_audio")
     # 输出设备
     from sounddevice_wrapper import SOUND_DEVICE_NAME
@@ -329,6 +327,8 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
     #     du = driver_utils.DriverUtils(driver)
     #     #启动协程
     #     asyncio.run(main())
+    global live_running
+    live_running = True
     print('is_prepare, is_play_prepare=', is_prepare(), ', ', is_play_prepare())
     if is_prepare():
         asyncio.run(prepare(ref_speaker_name))
@@ -346,7 +346,8 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
 
 def play_wav_cycle():
     def worker():
-        while True:
+        global live_running
+        while live_running or not query_queue.empty():
             try:
                 play_audio()
             except soundfile.LibsndfileError as ignore:
