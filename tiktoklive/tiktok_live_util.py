@@ -215,10 +215,10 @@ async def llm_query(contentItem):
 async def create_tts_task(ref_speaker_name):
     print("create_tts_task")
     while True:
-            if query_queue.not_empty:
-                contentItem = query_queue.get()
-                await create_tts(contentItem, ref_speaker_name)
-            await asyncio.sleep(1)
+        if query_queue.not_empty:
+            contentItem = query_queue.get()
+            await create_tts(contentItem, ref_speaker_name)
+        await asyncio.sleep(1)
 
 
 async def create_tts(contentItem, ref_speaker_name):
@@ -234,12 +234,10 @@ async def create_tts(contentItem, ref_speaker_name):
             audio_dir = os.path.dirname(audio)
             audio = fix_mci(audio, output_path=os.path.join(audio_dir, f'{name}.wav'))
             ref_audios[idx] = audio
-    emo_list = ['default', 'excited', 'cheerful']
     # 开始推理
     idx_turn = contentItem.index
     an = contentItem.text
-    select_emo = random.choice(emo_list)
-    print(f'assistant>({select_emo}) ', an)
+    print(f'assistant> ', an)
     # 准备模式，把tts保存到固定路径
     if is_prepare:
         out = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{idx_turn}_{device_index}.wav')
