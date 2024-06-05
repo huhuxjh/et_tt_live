@@ -5,27 +5,27 @@ import tiktoklive.tiktok_live_util as tiktokUtil
 config_src_range = 'B1:B9'
 
 
-def start(browserId, scenes, product, ref_speaker_name, device_id, obs_port):
+def start(browserId, scenes, product, ref_speaker_name, device_id, obs_port, mode, configId):
     print(f"{browserId}")
-    tiktokUtil.startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_port)
+    tiktokUtil.startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_port, mode, configId)
 
 
 if __name__ == '__main__':
     configId = "okL6Yo"
     obs_port = 4455
-    prepare = 0
+    # 0: live 实时生成 1: prepare 直播前准备 2: play prepare 播放准备素材
+    mode = 0 
+
     idx = 1
     while idx < len(sys.argv):
         if sys.argv[idx] == "--configId":
             configId = sys.argv[idx + 1]
         if sys.argv[idx] == "--obs_port":
             obs_port = sys.argv[idx + 1]
-        if sys.argv[idx] == "--prepare":
-            prepare = sys.argv[idx + 1]
+        if sys.argv[idx] == "--mode":
+            mode = sys.argv[idx + 1]
         idx += 1
-
-    # 是否直播前准备
-    is_prepare = (prepare == 1)    
+   
     lark_util.request_tenant_token()
     datas = lark_util.query_range(configId, config_src_range)
 
@@ -55,4 +55,4 @@ if __name__ == '__main__':
     product = lark_util.query_product_script(product_sheet, product_range)
     # 获取助播脚本
     scenes = lark_util.query_assist_script(assist_sheet, assist_range)
-    start(browserId, scenes, product, ref_speaker_name, device_id, obs_port)
+    start(browserId, scenes, product, ref_speaker_name, device_id, obs_port, mode, configId)

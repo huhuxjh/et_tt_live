@@ -27,8 +27,8 @@ last_social_message_time = 0
 social_message_min_period = 60
 enter_message_min_period = 60  # 进场欢迎最短间隔，60秒内最多发一个
 
-query_queue = queue.Queue(maxsize=30)
-tts_queue = queue.Queue(maxsize=30)
+query_queue = queue.Queue(maxsize=200)
+tts_queue = queue.Queue(maxsize=200)
 
 enter_reply_list = [
     'hello~',
@@ -47,6 +47,12 @@ share_reply_list = [
 follow_reply_list = [
     'Appreciate the follow'
 ]
+
+async def list_prepare_tts_task():
+    for _,val in enumerate(product_script.contentList):
+        wav = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{val.index}_{device_index}.wav')
+        if os.path.exists(wav):
+            tts_queue.put(wav)
 
 
 async def check_comment():
@@ -234,8 +240,12 @@ async def create_tts(contentItem, ref_speaker_name):
     an = contentItem.text
     select_emo = random.choice(emo_list)
     print(f'assistant>({select_emo}) ', an)
-    # todo: tts转换（名字要与client绑定，要不会相互覆盖）
-    out = os.path.join(outputs_v2, f'{yyyymmdd}{os.path.sep}tts_{idx_turn}_{device_index}.wav')
+    # 准备模式，把tts保存到固定路径
+    if is_prepare:
+        out = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{idx_turn}_{device_index}.wav')
+    else:
+    # 非准备模式，把tts保存到当天的路径
+        out = os.path.join(outputs_v2, f'{yyyymmdd}_{config_id}{os.path.sep}tts_{idx_turn}_{device_index}.wav')
     with timer('tts-local'):
         ref_name, _ = os.path.splitext(os.path.basename(random.choice(ref_audios)))
         output_name, _ = os.path.splitext(os.path.basename(out))
@@ -261,30 +271,64 @@ def play_audio():
     play_wav_on_device(wav=wav, device=device)
 
 
-async def main(ref_speaker_name):
+async def prepare(ref_speaker_name):
+    print("livemode: prepare")
+    t5 = asyncio.create_task(llm_query_task())
+    t6 = asyncio.create_task(create_tts_task(ref_speaker_name))
+    await asyncio.gather(t5, t6)
+
+
+async def play_prepare(ref_speaker_name):
+    print("livemode: play_prepare")
+    # t1 = asyncio.create_task(enter_task())
+    # t2 = asyncio.create_task(social_task())
+    # t3 = asyncio.create_task(broadcast_task())
+    # t4 = asyncio.create_task(chat_task())
+    t5 = asyncio.create_task(list_prepare_tts_task())
+    await asyncio.gather(t5)
+
+
+async def live(ref_speaker_name):
+    print("livemode: live")
     # t1 = asyncio.create_task(enter_task())
     # t2 = asyncio.create_task(social_task())
     # t3 = asyncio.create_task(broadcast_task())
     # t4 = asyncio.create_task(chat_task())
     t5 = asyncio.create_task(llm_query_task())
     t6 = asyncio.create_task(create_tts_task(ref_speaker_name))
-
     await asyncio.gather(t5, t6)
 
 
-def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_port):
-    global du, script_scenes, product_script, device_index
+def is_prepare():
+    return live_mode == 1
+
+
+def is_play_prepare():
+    return live_mode == 2
+
+
+def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_port, mode, configId):
+    global du, script_scenes, product_script, device_index, live_mode, config_id
     script_scenes = scenes
     product_script = product
     device_index = device_id
+    live_mode = mode
+    config_id = configId
     # driver,_ = chrome_utils.get_driver(browserId)
     # if driver:
     #     du = driver_utils.DriverUtils(driver)
     #     #启动协程
     #     asyncio.run(main())
-    obs_instance(obs_port)
-    play_wav_cycle()
-    asyncio.run(main(ref_speaker_name))
+    if is_prepare:
+        asyncio.run(prepare(ref_speaker_name))
+    elif is_play_prepare:
+        obs_instance(obs_port)
+        play_wav_cycle()
+        asyncio.run(play_prepare(ref_speaker_name))
+    else:
+        obs_instance(obs_port)
+        play_wav_cycle()
+        asyncio.run(live(ref_speaker_name))
 
 
 def play_wav_cycle():
