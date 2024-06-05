@@ -91,6 +91,8 @@ def query_product_script(sheet_id, src_range):
     for idx, val in enumerate(datas):
         index = idx + 1
         text = val[0]
+        if isinstance(text, list):
+            text = ''.join([item['text'] for item in text])
         keep = val[1]
         spc_type = val[2]
         label = val[3]

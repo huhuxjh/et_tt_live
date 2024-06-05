@@ -192,9 +192,12 @@ async def chat_task():
 
 
 async def llm_query_task():
-    while True:
-        for _,val in enumerate(product_script.contentList):
+    running = True
+    while running:
+        print('product_script.contentList=>', len(product_script.contentList))
+        for _, val in enumerate(product_script.contentList):
             await llm_query(val)
+        # running = False
 
 
 async def llm_query(contentItem):
@@ -205,7 +208,7 @@ async def llm_query(contentItem):
     keep = contentItem.keep
     # with timer('qa-llama_v3'):
     if keep == 1:
-        an = contentItem.text.replace('\n', '')
+        an = contentItem.text
     else:
         an = await llm_async(query, role_play, context, sys_inst, 3, 1.05)
     new_contentItem = ContentItem(index=contentItem.index, text=an, keep=contentItem.keep, spc_type=contentItem.spc_type, label=contentItem.label)
@@ -330,11 +333,13 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
     if is_prepare():
         asyncio.run(prepare(ref_speaker_name))
     elif is_play_prepare():
-        obs_instance(obs_port)
+        if obs_port > 0:
+            obs_instance(obs_port)
         play_wav_cycle()
         asyncio.run(play_prepare(ref_speaker_name))
     else:
-        obs_instance(obs_port)
+        if obs_port > 0:
+            obs_instance(obs_port)
         play_wav_cycle()
         asyncio.run(live(ref_speaker_name))
 

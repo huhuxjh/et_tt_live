@@ -23,7 +23,7 @@ if __name__ == '__main__':
         if sys.argv[idx] == "--configId":
             configId = sys.argv[idx + 1]
         if sys.argv[idx] == "--obs_port":
-            obs_port = sys.argv[idx + 1]
+            obs_port = int(sys.argv[idx + 1])
         if sys.argv[idx] == "--mode":
             mode = sys.argv[idx + 1]
         idx += 1
