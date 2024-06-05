@@ -324,9 +324,10 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
     #     du = driver_utils.DriverUtils(driver)
     #     #启动协程
     #     asyncio.run(main())
-    if is_prepare:
+    print('is_prepare, is_play_prepare=', is_prepare(), ', ', is_play_prepare())
+    if is_prepare():
         asyncio.run(prepare(ref_speaker_name))
-    elif is_play_prepare:
+    elif is_play_prepare():
         obs_instance(obs_port)
         play_wav_cycle()
         asyncio.run(play_prepare(ref_speaker_name))
