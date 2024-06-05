@@ -13,7 +13,9 @@ def start(browserId, scenes, product, ref_speaker_name, device_id, obs_port, mod
 if __name__ == '__main__':
     configId = "okL6Yo"
     obs_port = 4455
-    # 0: live 实时生成 1: prepare 直播前准备 2: play prepare 播放准备素材
+    # 0: live 实时生成 
+    # 1: prepare 直播前准备 
+    # 2: play prepare 播放准备素材
     mode = 0 
 
     idx = 1
