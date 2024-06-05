@@ -405,5 +405,7 @@ def play_wav_cycle():
             time.sleep(0.1)
 
     thread = threading.Thread(target=worker)
+    # 我发现现在跑 mode==2 的时候,thread.daemon=True 会导致它while循环一下子就跳出了,
+    # 之前不会可能是因为有其他任务在执行,只剩它自己的话就会有问题了
     thread.daemon = True
     thread.start()
