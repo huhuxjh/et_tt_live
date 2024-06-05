@@ -96,7 +96,7 @@ def query_product_script(sheet_id, src_range):
         keep = val[1]
         spc_type = val[2]
         label = val[3]
-        content = ContentItem(index, text, keep, spc_type, label)
+        content = ContentItem(index=index, text=text, keep=keep, spc_type=spc_type, label=label)
         contentList.append(content)
 
     role_play = '\n'.join([f'{val.index}.{val.text}' for idx, val in enumerate(contentList)])

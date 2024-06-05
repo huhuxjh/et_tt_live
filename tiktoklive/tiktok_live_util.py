@@ -1,15 +1,15 @@
 import asyncio
 import os
 import queue
-import random
 import shutil
 import sys
-import threading
-import time
+
+import soundfile
+from pydub import AudioSegment
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from obs.Auto_script_source_V3 import *
-    
+
 # 引用工程
 sys.path.append(os.path.abspath("E:\\ET_TTS"))
 from et_base import timer, yyyymmdd, fix_mci
@@ -31,8 +31,10 @@ last_social_message_time = 0
 social_message_min_period = 60
 enter_message_min_period = 60  # 进场欢迎最短间隔，60秒内最多发一个
 
-query_queue = queue.Queue(maxsize=200)
-tts_queue = queue.Queue(maxsize=200)
+query_queue = queue.Queue(maxsize=2000)
+tts_queue = queue.Queue(maxsize=2000)
+urgent_query_queue = queue.Queue(maxsize=10)
+urgent_tts_queue = queue.Queue(maxsize=10)
 obs_wrapper = None
 
 enter_reply_list = [
@@ -53,8 +55,9 @@ follow_reply_list = [
     'Appreciate the follow'
 ]
 
+
 async def list_prepare_tts_task():
-    for _,val in enumerate(product_script.contentList):
+    for _, val in enumerate(product_script.contentList):
         wav = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{val.index}_{device_index}.wav')
         if os.path.exists(wav):
             val.wav = wav
@@ -145,7 +148,7 @@ async def check_enter():
         enter_reply = random.choice(enter_reply_list)
         last_enter_message_time = current_timestamp
         await send_message(f'{enter_reply} {enter_owner_name}')
-
+        # todo: llm and createTTS and put to urgent_queue
 
 async def send_message(content):
     try:
@@ -199,26 +202,25 @@ async def llm_query_task():
     while live_running:
         for _, val in enumerate(product_script.contentList):
             if val.reproduce: await llm_query(val)
-        # live_running = False
+        live_running = False
 
 
-async def llm_query(contentItem):
-    query = f'go to step {contentItem.index}'
+async def llm_query(content_item):
+    query = f'go to step {content_item.index}'
     context = product_script.context
     sys_inst = product_script.sys_inst
     role_play = product_script.role_play
-    keep = contentItem.keep
+    keep = content_item.keep
     # with timer('qa-llama_v3'):
     if keep == 1:
-        an = contentItem.text.replace('\n', ' ')
+        an = content_item.text.replace('\n', ' ')
     else:
         an = await llm_async(query, role_play, context, sys_inst, 3, 1.05)
-    new_contentItem = ContentItem(index=contentItem.index, text=an, keep=contentItem.keep,
-                                  spc_type=contentItem.spc_type, label=contentItem.label,
-                                  reproduce=contentItem.reproduce)
-    print(f"query put size:{query_queue.qsize()}")
-    query_queue.put(new_contentItem, block=True)
-    print(f"query after put size:{query_queue.qsize()}")
+    new_content_item = ContentItem(index=content_item.index, text=an, keep=content_item.keep,
+                                   spc_type=content_item.spc_type, label=content_item.label,
+                                   reproduce=content_item.reproduce)
+    query_queue.put(new_content_item)
+    print(f"query_queue put size:{len(query_queue)}")
     await asyncio.sleep(1)
 
 
@@ -226,18 +228,18 @@ async def create_tts_task(ref_speaker_name):
     global live_running
     print("create_tts_task")
     while True:
-        if not query_queue.empty():
-            contentItem = query_queue.get()
-            await create_tts(contentItem, ref_speaker_name)
+        if len(query_queue) > 0:
+            content_item = query_queue.get()
+            await create_tts(content_item, ref_speaker_name)
         elif not live_running:
             break
         await asyncio.sleep(1)
 
 
-async def create_tts(contentItem, ref_speaker_name):
+async def create_tts(content_item, ref_speaker_name):
     # todo: 配置传入
     # todo: tts 生成的名字，现在的idx仍然可能重复
-    print(f"create_tts: {contentItem.index}")
+    print(f"create_tts: {content_item.index}")
     ref_speaker = os.path.join(resources, ref_speaker_name)
     # 参考音频
     ref_audios = [ref_speaker]
@@ -248,8 +250,8 @@ async def create_tts(contentItem, ref_speaker_name):
             audio = fix_mci(audio, output_path=os.path.join(audio_dir, f'{name}.wav'))
             ref_audios[idx] = audio
     # 开始推理
-    idx_turn = contentItem.index
-    an = contentItem.text
+    idx_turn = content_item.index
+    an = content_item.text
     print(f'assistant> ', an)
     # 准备模式，把tts保存到固定路径
     if is_prepare():
@@ -263,13 +265,19 @@ async def create_tts(contentItem, ref_speaker_name):
     with timer('tts-local'):
         ref_name, _ = os.path.splitext(os.path.basename(random.choice(ref_audios)))
         output_name, _ = os.path.splitext(os.path.basename(out))
-        wav = await tts_async(an, ref_name, output_name, contentItem.spc_type)
+        wav = await tts_async(an, ref_name, output_name, content_item.spc_type)
         wav = wav.replace('"', '')
         # 复制到本地
         shutil.copy(wav, out)
-        contentItem.wav = out
-        # 播放out
-        tts_queue.put(contentItem, block=True)
+        content_item.wav = out
+        # wav 入队
+        tts_queue.put(content_item)
+
+
+def get_wav_dur(wav):
+    sound = AudioSegment.from_wav(wav)
+    duration = sound.duration_seconds * 1000  # 音频时长（ms）
+    return duration
 
 
 def play_audio():
@@ -279,28 +287,34 @@ def play_audio():
     device_list = SOUND_DEVICE_NAME
     # 如果配置了设备名字，那么通过name_to_index去转换index，保证设备名唯一
     # device_index = name_to_index(device_name)
-    print(f"start to get tts queue, size:{tts_queue.qsize()}")
-    # if tts_queue.empty():
-    #     return
-    contentItem = tts_queue.get()
-    wav = contentItem.wav
-    # todo: label用来调用OBS播放
-    label = contentItem.label
-    obs_wrapper.play(label)
-    print(f"end to get tts queue, size:{tts_queue.qsize()}")
+
+    if urgent_tts_queue.not_empty:
+        urgent_tts = urgent_tts_queue.get()
+        # todo:优先插入紧急TTS
+    content_item = tts_queue.get()
+    wav = content_item.wav
+    label = content_item.label
+    print(f"end to get tts queue, size:{len(tts_queue)}")
     device = device_list[device_index]
+    drive_obs(wav, label)
     play_wav_on_device(wav=wav, device=device)
 
 
+def drive_obs(wav, label):
+    dur = get_wav_dur(wav)
+    # todo: drive the obs
+    # obs_wrapper.play(label)
+
+
 async def prepare(ref_speaker_name):
-    print("livemode: prepare")
+    print("live mode: prepare")
     t5 = asyncio.create_task(llm_query_task())
     t6 = asyncio.create_task(create_tts_task(ref_speaker_name))
     await asyncio.gather(t5, t6)
 
 
 async def play_prepare(ref_speaker_name):
-    print("livemode: play_prepare")
+    print("live mode: play_prepare")
     # t1 = asyncio.create_task(enter_task())
     # t2 = asyncio.create_task(social_task())
     # t3 = asyncio.create_task(broadcast_task())
@@ -310,7 +324,7 @@ async def play_prepare(ref_speaker_name):
 
 
 async def live(ref_speaker_name):
-    print("livemode: live")
+    print("live mode: live")
     # t1 = asyncio.create_task(enter_task())
     # t2 = asyncio.create_task(social_task())
     # t3 = asyncio.create_task(broadcast_task())
@@ -364,10 +378,10 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
 def play_wav_cycle():
     def worker():
         global live_running
-        while live_running or not query_queue.empty():
+        while live_running or len(tts_queue) > 0:
             try:
                 play_audio()
-            except Exception as ignore:
+            except soundfile.LibsndfileError as ignore:
                 print(ignore)
             time.sleep(0.1)
 
