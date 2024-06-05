@@ -1,6 +1,7 @@
 import asyncio
 import os
 import queue
+import random
 import shutil
 import sys
 import threading
@@ -305,7 +306,9 @@ def play_audio():
 
 def drive_obs(wav, label):
     wav_dur = get_wav_dur(wav)
-
+    print(f"drive_obs:{label},{wav_dur}")
+    label_list = ["discount_now", "discount_in_live"]
+    obs_wrapper.play(random.choice(label_list))
     # todo: drive the obs
     # 调用播放
     # obs_wrapper.play(label, None)
@@ -407,5 +410,5 @@ def play_wav_cycle():
     thread = threading.Thread(target=worker)
     # 我发现现在跑 mode==2 的时候,thread.daemon=True 会导致它while循环一下子就跳出了,
     # 之前不会可能是因为有其他任务在执行,只剩它自己的话就会有问题了
-    thread.daemon = True
+    # thread.daemon = True
     thread.start()
