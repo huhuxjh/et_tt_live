@@ -7,8 +7,9 @@ import sys
 import threading
 import time
 
-import soundfile
-
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from obs.Auto_script_source_V3 import *
+    
 # 引用工程
 sys.path.append(os.path.abspath("E:\\ET_TTS"))
 from et_base import timer, yyyymmdd, fix_mci
@@ -32,6 +33,7 @@ enter_message_min_period = 60  # 进场欢迎最短间隔，60秒内最多发一
 
 query_queue = queue.Queue(maxsize=200)
 tts_queue = queue.Queue(maxsize=200)
+obs_wrapper = None
 
 enter_reply_list = [
     'hello~',
@@ -284,6 +286,7 @@ def play_audio():
     wav = contentItem.wav
     # todo: label用来调用OBS播放
     label = contentItem.label
+    obs_wrapper.play(label)
     print(f"end to get tts queue, size:{tts_queue.qsize()}")
     device = device_list[device_index]
     play_wav_on_device(wav=wav, device=device)
@@ -344,12 +347,16 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
         asyncio.run(prepare(ref_speaker_name))
     elif is_play_prepare():
         if obs_port > 0:
-            obs_instance(obs_port)
+            global obs_wrapper
+            obs_wrapper = OBScriptManager(obs_port)
+            obs_wrapper.start()
         play_wav_cycle()
         asyncio.run(play_prepare(ref_speaker_name))
     else:
         if obs_port > 0:
-            obs_instance(obs_port)
+            global obs_wrapper
+            obs_wrapper = OBScriptManager(obs_port)
+            obs_wrapper.start()
         play_wav_cycle()
         asyncio.run(live(ref_speaker_name))
 
@@ -360,45 +367,10 @@ def play_wav_cycle():
         while live_running or not query_queue.empty():
             try:
                 play_audio()
-            except soundfile.LibsndfileError as ignore:
+            except Exception as ignore:
                 print(ignore)
             time.sleep(0.1)
 
     thread = threading.Thread(target=worker)
     thread.daemon = True
     thread.start()
-
-
-from obs.Auto_script_source_V2 import *
-def obs_instance(obs_port):
-    def obs_loop():
-        print(f"================================ !!!")
-        scriptMgr = OBScriptManager(obs_port)
-        scriptMgr.start()
-        layers = []
-        for n in range(1, 37):
-            layers.append(f"product_{n}")
-        selected = set()
-        def get_random_layer(lll, selected):
-            if len(selected) == len(lll):
-                selected.clear()
-            while True:
-                random_layer = random.choice(lll)
-                if random_layer not in selected:
-                    selected.add(random_layer)
-                    return random_layer
-        print(f"================================ obs start {obs_port} !!!")
-        while True:
-            if scriptMgr.is_playing() == False:
-                scriptMgr.set_current_layer(get_random_layer(layers, selected))
-            if keyboard.is_pressed('q'):
-                print("Exiting the OBScriptManager work, Disconnnect from obs !!!!!!!.")
-                scriptMgr.stop()
-                break
-            time.sleep(random.randint(10, 40))
-
-    print("================================ obs start")
-    thread = threading.Thread(target=obs_loop)
-    thread.daemon = True
-    thread.start()
-
