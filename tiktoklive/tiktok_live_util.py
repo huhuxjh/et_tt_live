@@ -205,10 +205,10 @@ async def llm_query(contentItem):
     keep = contentItem.keep
     # with timer('qa-llama_v3'):
     if keep == 1:
-        an = contentItem.text
+        an = contentItem.text.replace('\n', '')
     else:
         an = await llm_async(query, role_play, context, sys_inst, 3, 1.05)
-    new_contentItem = ContentItem(index= contentItem.index, text= an, keep=contentItem.keep, spc_type= contentItem.spc_type, label= contentItem.label)
+    new_contentItem = ContentItem(index=contentItem.index, text=an, keep=contentItem.keep, spc_type=contentItem.spc_type, label=contentItem.label)
     print(f"query put size:{query_queue.qsize()}")
     query_queue.put(new_contentItem, block=True)
     print(f"query after put size:{query_queue.qsize()}")
