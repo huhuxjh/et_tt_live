@@ -242,7 +242,7 @@ async def create_tts(contentItem, ref_speaker_name):
     an = contentItem.text
     print(f'assistant> ', an)
     # 准备模式，把tts保存到固定路径
-    if is_prepare:
+    if is_prepare():
         out = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{idx_turn}_{device_index}.wav')
     else:  # 非准备模式，把tts保存到当天的路径
         out = os.path.join(outputs_v2, f'{yyyymmdd}_{config_id}{os.path.sep}tts_{idx_turn}_{device_index}.wav')
