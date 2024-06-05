@@ -36,6 +36,7 @@ tts_queue = queue.Queue(maxsize=2000)
 urgent_query_queue = queue.Queue(maxsize=10)
 urgent_tts_queue = queue.Queue(maxsize=10)
 obs_wrapper = None
+local_video_dir = "D:\\video_normal"
 
 enter_reply_list = [
     'hello~',
@@ -287,6 +288,7 @@ def play_audio():
     device_list = SOUND_DEVICE_NAME
     # 如果配置了设备名字，那么通过name_to_index去转换index，保证设备名唯一
     # device_index = name_to_index(device_name)
+<<<<<<< Updated upstream
 
     if urgent_tts_queue.not_empty:
         urgent_tts = urgent_tts_queue.get()
@@ -295,6 +297,17 @@ def play_audio():
     wav = content_item.wav
     label = content_item.label
     print(f"end to get tts queue, size:{len(tts_queue)}")
+=======
+    print(f"start to get tts queue, size:{tts_queue.qsize()}")
+    # if tts_queue.empty():
+    #     return
+    contentItem = tts_queue.get()
+    wav = contentItem.wav
+    # todo: label用来调用OBS播放
+    label = contentItem.label
+    obs_wrapper.play(label, None)
+    print(f"end to get tts queue, size:{tts_queue.qsize()}")
+>>>>>>> Stashed changes
     device = device_list[device_index]
     drive_obs(wav, label)
     play_wav_on_device(wav=wav, device=device)
@@ -362,14 +375,14 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
     elif is_play_prepare():
         if obs_port > 0:
             global obs_wrapper
-            obs_wrapper = OBScriptManager(obs_port)
+            obs_wrapper = OBScriptManager(obs_port, local_video_dir)
             obs_wrapper.start()
         play_wav_cycle()
         asyncio.run(play_prepare(ref_speaker_name))
     else:
         if obs_port > 0:
             global obs_wrapper
-            obs_wrapper = OBScriptManager(obs_port)
+            obs_wrapper = OBScriptManager(obs_port, local_video_dir)
             obs_wrapper.start()
         play_wav_cycle()
         asyncio.run(live(ref_speaker_name))

@@ -124,7 +124,7 @@ class EventObserver:
         print("OBS closing!")
 
 class OBScriptManager :
-    def __init__(self, port, sub_tag_dir, add_filter):
+    def __init__(self, port, sub_tag_dir, add_filter=False):
         self.port = port
         self.maxCommandNum = 1
         self._observer = EventObserver(add_filter)
