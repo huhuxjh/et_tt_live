@@ -223,7 +223,7 @@ async def llm_query(content_item):
                                    spc_type=content_item.spc_type, label=content_item.label,
                                    reproduce=content_item.reproduce)
     query_queue.put(new_content_item)
-    print(f"query_queue put size:{len(query_queue)}")
+    print(f"query_queue put size:{query_queue.qsize()}")
     await asyncio.sleep(1)
 
 
@@ -231,7 +231,7 @@ async def create_tts_task(ref_speaker_name):
     global live_running
     print("create_tts_task")
     while True:
-        if len(query_queue) > 0:
+        if query_queue.not_empty:
             content_item = query_queue.get()
             await create_tts(content_item, ref_speaker_name)
         elif not live_running:
@@ -291,13 +291,13 @@ def play_audio():
     # 如果配置了设备名字，那么通过name_to_index去转换index，保证设备名唯一
     # device_index = name_to_index(device_name)
 
-    if urgent_tts_queue.not_empty:
-        urgent_tts = urgent_tts_queue.get()
-        # todo:优先插入紧急TTS
+    # if urgent_tts_queue.not_empty:
+    #     urgent_tts = urgent_tts_queue.get()
+    #     # todo:优先插入紧急TTS
     content_item = tts_queue.get()
     wav = content_item.wav
     label = content_item.label
-    print(f"end to get tts queue, size:{len(tts_queue)}")
+    print(f"end to get tts queue, size:{tts_queue.qsize()}")
     device = device_list[device_index]
     drive_obs(wav, label)
     play_wav_on_device(wav=wav, device=device)
@@ -355,11 +355,11 @@ async def live(ref_speaker_name):
 
 
 def is_prepare():
-    return live_mode == 1
+    return live_mode == "1"
 
 
 def is_play_prepare():
-    return live_mode == 2
+    return live_mode == "2"
 
 
 def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_port, mode, configId):
@@ -397,7 +397,7 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
 def play_wav_cycle():
     def worker():
         global live_running
-        while live_running or len(tts_queue) > 0:
+        while live_running or tts_queue.not_empty > 0:
             try:
                 play_audio()
             except soundfile.LibsndfileError as ignore:
