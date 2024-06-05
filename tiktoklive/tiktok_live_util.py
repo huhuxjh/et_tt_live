@@ -2,6 +2,7 @@ import asyncio
 import os
 import queue
 import random
+import shutil
 import sys
 import threading
 import time
@@ -241,15 +242,21 @@ async def create_tts(contentItem, ref_speaker_name):
     # 准备模式，把tts保存到固定路径
     if is_prepare:
         out = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{idx_turn}_{device_index}.wav')
-    else:
-    # 非准备模式，把tts保存到当天的路径
+    else:  # 非准备模式，把tts保存到当天的路径
         out = os.path.join(outputs_v2, f'{yyyymmdd}_{config_id}{os.path.sep}tts_{idx_turn}_{device_index}.wav')
+    # 如果文件夹不存在创建文件夹
+    out_dir = os.path.dirname(out)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
     with timer('tts-local'):
         ref_name, _ = os.path.splitext(os.path.basename(random.choice(ref_audios)))
         output_name, _ = os.path.splitext(os.path.basename(out))
         wav = await tts_async(an, ref_name, output_name, contentItem.spc_type)
         wav = wav.replace('"', '')
-        tts_queue.put(wav, block=True)
+        # 复制到本地
+        shutil.copy(wav, out)
+        # 播放out
+        tts_queue.put(out, block=True)
 
 
 def play_audio():
