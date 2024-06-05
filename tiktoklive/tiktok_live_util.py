@@ -3,6 +3,7 @@ import os
 import queue
 import shutil
 import sys
+import threading
 
 import soundfile
 from pydub import AudioSegment
@@ -288,7 +289,6 @@ def play_audio():
     device_list = SOUND_DEVICE_NAME
     # 如果配置了设备名字，那么通过name_to_index去转换index，保证设备名唯一
     # device_index = name_to_index(device_name)
-<<<<<<< Updated upstream
 
     if urgent_tts_queue.not_empty:
         urgent_tts = urgent_tts_queue.get()
@@ -297,17 +297,6 @@ def play_audio():
     wav = content_item.wav
     label = content_item.label
     print(f"end to get tts queue, size:{len(tts_queue)}")
-=======
-    print(f"start to get tts queue, size:{tts_queue.qsize()}")
-    # if tts_queue.empty():
-    #     return
-    contentItem = tts_queue.get()
-    wav = contentItem.wav
-    # todo: label用来调用OBS播放
-    label = contentItem.label
-    obs_wrapper.play(label, None)
-    print(f"end to get tts queue, size:{tts_queue.qsize()}")
->>>>>>> Stashed changes
     device = device_list[device_index]
     drive_obs(wav, label)
     play_wav_on_device(wav=wav, device=device)
@@ -315,8 +304,21 @@ def play_audio():
 
 def drive_obs(wav, label):
     dur = get_wav_dur(wav)
+
     # todo: drive the obs
-    # obs_wrapper.play(label)
+    # 调用播放
+    # obs_wrapper.play(label, None)
+    # 获取视频列表数组 by label
+    # get_play_tag_list()
+    # self.tags[tag].append({
+    #     "path": os.path.join(sub_tag_dir, tag),
+    #     "width": w,
+    #     "height": h,
+    #     "duration": video_duration,
+    #     "played": False
+    # })
+    # 获取还剩下多长的播放时长,如果没在播放返回0,0
+    # get_play_status
 
 
 async def prepare(ref_speaker_name):

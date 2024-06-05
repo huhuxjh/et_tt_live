@@ -173,6 +173,7 @@ class OBScriptManager :
         resp = scriptMgr._observer._request.get_media_input_status(tag)
         if resp.media_state == 'OBS_MEDIA_STATE_PLAYING':
             return resp.media_cursor, resp.media_duration
+        return 0, 0
     
     def play(self, tag, mp4=None):
         if self.is_playing() == True:
