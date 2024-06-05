@@ -7,9 +7,10 @@ class Product:
         self.contentList = contentList
 
 class ContentItem:
-    def __init__(self, index, text, keep, spc_type, label):
+    def __init__(self, index, text, keep, spc_type, label, wav):
         self.index = index
         self.text = text
         self.keep = keep
         self.spc_type = spc_type
         self.label = label
+        self.wav = wav

@@ -55,7 +55,8 @@ async def list_prepare_tts_task():
     for _,val in enumerate(product_script.contentList):
         wav = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{val.index}_{device_index}.wav')
         if os.path.exists(wav):
-            tts_queue.put(wav)
+            val.wav = wav
+            tts_queue.put(val)
 
 
 async def check_comment():
@@ -259,8 +260,9 @@ async def create_tts(contentItem, ref_speaker_name):
         wav = wav.replace('"', '')
         # 复制到本地
         shutil.copy(wav, out)
+        contentItem.wav = out
         # 播放out
-        tts_queue.put(out, block=True)
+        tts_queue.put(contentItem, block=True)
 
 
 def play_audio():
@@ -273,7 +275,10 @@ def play_audio():
     print(f"start to get tts queue, size:{tts_queue.qsize()}")
     # if tts_queue.empty():
     #     return
-    wav = tts_queue.get()
+    contentItem = tts_queue.get()
+    wav = contentItem.wav
+    # todo: label用来调用OBS播放
+    label = contentItem.label
     print(f"end to get tts queue, size:{tts_queue.qsize()}")
     device = device_list[device_index]
     play_wav_on_device(wav=wav, device=device)
