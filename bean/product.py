@@ -137,7 +137,7 @@ class Template:
         #     (判断有没有,0.1小概率,0-1) 随机是否要插入chat...n (去重)
         #     (判断有没有,0.8大概率,0-1) 随机是否要插入order_urging...n (去重)
         # bye
-        self.script_config: list[str] = self._produce_config_(seed=60)
+        self.script_config: list[str] = self._produce_config_(seed=5)
 
     def _update_template_tag_group_(self):
         key_pattern = [re.compile(key, re.IGNORECASE) for key, _ in self.template_tag_group.items()]
