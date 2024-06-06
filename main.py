@@ -16,23 +16,28 @@ if __name__ == '__main__':
     # 1: prepare 直播前准备 
     # 2: play prepare 播放准备素材
     run_mode = 0
+    #  是否重新生成script
+    reproduce = False
 
     idx = 1
     while idx < len(sys.argv):
-        if sys.argv[idx] == "--configId":
+        if sys.argv[idx] == "--config_id":
             config_id = sys.argv[idx + 1]
-        if sys.argv[idx] == "--obs_port":
+        elif sys.argv[idx] == "--obs_port":
             obs_port = int(sys.argv[idx + 1])
-        if sys.argv[idx] == "--mode":
+        elif sys.argv[idx] == "--run_mode":
             run_mode = sys.argv[idx + 1]
+        elif sys.argv[idx] == '--force':
+            reproduce = sys.argv[idx + 1] == 'True'
         idx += 1
-
+    # 参数对照
+    print(f'config_id={config_id}, obs_port={obs_port}, run_mode={run_mode}, reproduce={reproduce}')
+    # 请求配置
     config = lark_util.retrieve_config(config_id, config_src_range)
-    print(f"browser: {config.browser_id},\nproduct_sheet: {config.product_sheet},\nproduct_range:{config.product_range},"
-          f"\nassist_sheet: {config.assist_sheet},\nassist_range:{config.assist_range}")
-
+    print(f"browser: {config.browser_id},\nproduct_sheet: {config.product_sheet},product_range:{config.product_range},"
+          f"\nassist_sheet: {config.assist_sheet},assist_range:{config.assist_range}")
     # 获取商品脚本
-    product = lark_util.retrieve_script(config_id, config.product_sheet, config.product_range)
+    product = lark_util.retrieve_script(config_id, config.product_sheet, config.product_range, reproduce)
     # 获取助播脚本
     scenes = lark_util.query_assist_script(config.assist_sheet, config.assist_range)
     # 启动main逻辑
