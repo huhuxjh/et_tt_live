@@ -21,11 +21,11 @@ class Config:
 class ScriptItem:
     def __init__(self, index, text, llm_infer, tts_type, vid_label, wav=''):
         self.index = index
-        self.text = text
-        self.llm_infer = llm_infer
-        self.tts_type = tts_type
-        self.vid_label = vid_label
-        self.wav = wav
+        self.text = text if text else ''
+        self.llm_infer = llm_infer if llm_infer else 1
+        self.tts_type = tts_type if tts_type else 'ov_v2'
+        self.vid_label = vid_label if vid_label else ''
+        self.wav = wav if wav else ''
 
     def update(self, idx):
         self.index = idx
@@ -106,11 +106,11 @@ class Script:
 
 class TemplateItem:
     def __init__(self, template_tag, text, llm_infer, tts_type, vid_label):
-        self.template_tag = template_tag
-        self.text = text
-        self.llm_infer = llm_infer
-        self.tts_type = tts_type
-        self.vid_label = vid_label
+        self.template_tag = template_tag if template_tag else ''
+        self.text = text if text else ''
+        self.llm_infer = llm_infer if llm_infer else 1
+        self.tts_type = tts_type if tts_type else 'ov_v2'
+        self.vid_label = vid_label if vid_label else ''
 
 
 class Template:
@@ -127,14 +127,15 @@ class Template:
             'order_urging': ['order_urging'],
             'bye': ['bye'],
         }
+        # welcome
         # for (指定)count 1000
         #     (判断有没有,0.5中概率,0-1) 随机welcome...n (去重)
         #     随机selling_point_n (去重)
         #     (判断有没有, 0.4中概率, 0-1) 随机selling_point_n(去重)
         #     (判断有没有, 0.3小概率, 0-1) 随机selling_point_n(去重)
-        #     (判断有没有,0.1小概率,0-1) 随机是否要插入chat (去重)
-        #     (判断有没有,0.8大概率,0-1) 随机是否要插入order_urging (去重)
-        # 'bye'
+        #     (判断有没有,0.1小概率,0-1) 随机是否要插入chat...n (去重)
+        #     (判断有没有,0.8大概率,0-1) 随机是否要插入order_urging...n (去重)
+        # bye
         self.script_config: list[str] = self.produce_config()
 
     def produce_config(self, seed=1000) -> list[str]:
@@ -189,7 +190,7 @@ class Template:
             else:
                 print(f'tag {choice_tag} is not in template list')
         # 更新脚本步骤信息
-        script_item_list = [item for item in script_item_list if item.text != '']
+        script_item_list = [item for item in script_item_list if item.text and item.text != '']
         script_item_list = [item.update(idx+1) for idx, item in enumerate(script_item_list)]
         # 返回生成的脚本列表
         return script_item_list
@@ -207,7 +208,7 @@ class Template:
         for key, val_list in self.item_group.items():
             script_item_list.extend(map(convert, val_list))
         # 更新脚本步骤信息
-        script_item_list = [item for item in script_item_list if item.text != '']
+        script_item_list = [item for item in script_item_list if item.text and item.text != '']
         script_item_list = [item.update(idx + 1) for idx, item in enumerate(script_item_list)]
         # 返回生成的脚本列表
         return script_item_list
