@@ -4,7 +4,7 @@ import lark_oapi as lark
 import json
 import requests
 
-from bean.product import Script, ScriptItem, Template, TemplateItem
+from bean.product import Config, Script, ScriptItem, Template, TemplateItem
 from bean.scene import Scene
 
 app_id = 'cli_a6c746e54a39d013'
@@ -44,7 +44,12 @@ def request_tenant_token():
         print(response.text)
 
 
-def query_range(sheet_id, range_value):
+def query_sheet_range(sheet_id, range_value):
+    # 先处理token
+    if tenant_access_token == '':
+        request_tenant_token()
+
+    # 请求逻辑
     client = lark.Client.builder() \
         .enable_set_token(True) \
         .log_level(lark.LogLevel.DEBUG) \
@@ -72,8 +77,40 @@ def query_range(sheet_id, range_value):
     #     return read_resp
 
 
+def retrieve_config(sheet_id, src_range):
+    data_sheet = query_sheet_range(sheet_id, src_range)
+    # 获取直播间名字
+    room_name = data_sheet[1][0]
+    # 获取指纹浏览器ID
+    browser_id = data_sheet[2][0]
+    # 获取主播商品介绍sheetId
+    product_sheet = data_sheet[3][0]
+    # 获取主播商品介绍sheet_range
+    product_range = data_sheet[4][0]
+    # 获取助播公屏配置sheetId
+    assist_sheet = data_sheet[5][0]
+    # 获取助播公屏配置sheet_range
+    assist_range = data_sheet[6][0]
+    # 获取主播音色名字
+    ref_speaker = data_sheet[7][0]
+    # ref_speaker_name = 'man_role0_ref'
+    # 获取播放设备id
+    sound_device = data_sheet[8][0]
+    # device_id = 1
+    return Config(
+        room_name=room_name,
+        browser_id=browser_id,
+        product_sheet=product_sheet,
+        product_range=product_range,
+        assist_sheet=assist_sheet,
+        assist_range=assist_range,
+        ref_speaker=ref_speaker,
+        sound_device=sound_device,
+    )
+
+
 def query_assist_script(sheet_id, src_range):
-    datas = query_range(sheet_id, src_range)
+    datas = query_sheet_range(sheet_id, src_range)
     scenes = []
     for data in datas:
         start_time, cycle_time, content = data
@@ -89,7 +126,7 @@ def to_text_safety(text):
 
 
 def query_product_template(sheet_id, src_range) -> Template:
-    datas = query_range(sheet_id, src_range)
+    datas = query_sheet_range(sheet_id, src_range)
     role_play = datas.pop(0)[1]
     product_info = datas.pop(0)[1]
     sys_inst = datas.pop(0)[1]

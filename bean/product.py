@@ -3,6 +3,19 @@ import random
 import re
 
 
+class Config:
+    def __init__(self, room_name, browser_id, product_sheet, product_range,
+                 assist_sheet, assist_range, ref_speaker, sound_device):
+        self.room_name = room_name
+        self.browser_id = browser_id
+        self.product_sheet = product_sheet
+        self.product_range = product_range
+        self.assist_sheet = assist_sheet
+        self.assist_range = assist_range
+        self.ref_speaker = ref_speaker
+        self.sound_device = sound_device
+
+
 class ScriptItem:
     def __init__(self, index, text, llm_infer, tts_type, vid_label, wav=''):
         self.index = index

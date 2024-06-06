@@ -26,34 +26,14 @@ if __name__ == '__main__':
         if sys.argv[idx] == "--mode":
             run_mode = sys.argv[idx + 1]
         idx += 1
-   
-    lark_util.request_tenant_token()
-    data_sheet = lark_util.query_range(config_id, config_src_range)
 
-    # 获取直播间名字
-    room_name = data_sheet[1][0]
-    # 获取指纹浏览器ID
-    browser_id = data_sheet[2][0]
-    # 获取主播商品介绍sheetId
-    product_sheet = data_sheet[3][0]
-    # 获取主播商品介绍sheet_range
-    product_range = data_sheet[4][0]
-    # 获取助播公屏配置sheetId
-    assist_sheet = data_sheet[5][0]
-    # 获取助播公屏配置sheet_range
-    assist_range = data_sheet[6][0]
-    # 获取主播音色名字
-    ref_speaker_name = data_sheet[7][0]
-    # ref_speaker_name = 'man_role0_ref'
-    # 获取播放设备id
-    device_id = data_sheet[8][0]
-    # device_id = 1
+    config = lark_util.retrieve_config(config_id, config_src_range)
+    print(f"browser: {config.browser_id},\nproduct_sheet: {config.product_sheet},\nproduct_range:{config.product_range},"
+          f"\nassist_sheet: {config.assist_sheet},\nassist_range:{config.assist_range}")
 
-    print(
-        f"browser: {browser_id},\nproduct_sheet: {product_sheet},"
-        f"\nproduct_range:{product_range},\nassist_sheet: {assist_sheet},\nassist_range:{assist_range}")
     # 获取商品脚本
-    product = lark_util.retrieve_script(config_id, product_sheet, product_range)
+    product = lark_util.retrieve_script(config_id, config.product_sheet, config.product_range)
     # 获取助播脚本
-    scenes = lark_util.query_assist_script(assist_sheet, assist_range)
-    start(browser_id, scenes, product, ref_speaker_name, device_id, obs_port, run_mode, config_id)
+    scenes = lark_util.query_assist_script(config.assist_sheet, config.assist_range)
+    # 启动main逻辑
+    start(config.browser_id, scenes, product, config.ref_speaker, config.sound_device, obs_port, run_mode, config_id)
