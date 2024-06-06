@@ -33,7 +33,7 @@ if __name__ == '__main__':
     # 获取直播间名字
     room_name = data_sheet[1][0]
     # 获取指纹浏览器ID
-    browserId = data_sheet[2][0]
+    browser_id = data_sheet[2][0]
     # 获取主播商品介绍sheetId
     product_sheet = data_sheet[3][0]
     # 获取主播商品介绍sheet_range
@@ -50,14 +50,10 @@ if __name__ == '__main__':
     # device_id = 1
 
     print(
-        f"browser: {browserId},\nproduct_sheet: {product_sheet},"
+        f"browser: {browser_id},\nproduct_sheet: {product_sheet},"
         f"\nproduct_range:{product_range},\nassist_sheet: {assist_sheet},\nassist_range:{assist_range}")
     # 获取商品脚本
     product = lark_util.retrieve_script(config_id, product_sheet, product_range)
-    # reproduce_list = [1,9,10,14,15,18,28,32,33,34,40,42,44,47,56,62,65,67,69,70,73,75,76,79,84,94,98,100,
-    #                   107,111,112,114,126,127,130,135,135,138,142,149,155,156,159,160,161,163,164]
-    # for item in product.contentList:
-    #     item.reproduce = (item.index in reproduce_list)
     # 获取助播脚本
     scenes = lark_util.query_assist_script(assist_sheet, assist_range)
-    start(browserId, scenes, product, ref_speaker_name, device_id, obs_port, run_mode, config_id)
+    start(browser_id, scenes, product, ref_speaker_name, device_id, obs_port, run_mode, config_id)

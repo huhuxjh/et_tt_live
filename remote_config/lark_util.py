@@ -124,6 +124,9 @@ def product_product_scrip(template: Template) -> Script:
 
 
 def retrieve_script(config_id, sheet_id, src_range, reproduce=False):
+    """
+    reproduce: True强制删除缓存, False使用缓存
+    """
     from bean.product import Script
     base_dir = os.path.dirname(os.path.abspath(__file__))
     base_dir = os.path.join(base_dir, f'script_{config_id}')
