@@ -238,7 +238,7 @@ async def create_tts_task(ref_speaker_name):
     global live_running
     print("create_tts_task")
     while True:
-        if query_queue.not_empty:
+        if not query_queue.empty():
             content_item = query_queue.get()
             await create_tts(content_item, ref_speaker_name)
         elif not live_running:
@@ -302,7 +302,7 @@ def play_audio():
     # 如果配置了设备名字，那么通过name_to_index去转换index，保证设备名唯一
     # device_index = name_to_index(device_name)
 
-    # if urgent_tts_queue.not_empty:
+    # if not urgent_tts_queue.empty():
     #     urgent_tts = urgent_tts_queue.get()
     #     # todo:优先插入紧急TTS
     content_item = tts_queue.get()
@@ -378,7 +378,6 @@ async def live(ref_speaker_name):
         await asyncio.gather(llm_task, tts_task)
     except asyncio.CancelledError:
         print("live mode: live end")
-
 
 
 def is_prepare():
