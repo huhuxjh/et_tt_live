@@ -137,14 +137,13 @@ class Template:
         #     (判断有没有,0.1小概率,0-1) 随机是否要插入chat...n (去重)
         #     (判断有没有,0.8大概率,0-1) 随机是否要插入order_urging...n (去重)
         # bye
-        self.script_config: list[str] = self._produce_config_()
+        self.script_config: list[str] = self._produce_config_(seed=60)
 
     def _update_template_tag_group_(self):
         key_pattern = [re.compile(key, re.IGNORECASE) for key, _ in self.template_tag_group.items()]
         for key, _ in self.item_group.items():
             for pattern in key_pattern:
                 match = pattern.match(key)
-                print(pattern, match)
                 if match:
                     if key not in self.template_tag_group[match.group()]:
                         self.template_tag_group[match.group()].append(key)

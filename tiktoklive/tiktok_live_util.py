@@ -321,8 +321,10 @@ def play_audio():
     device = device_list[device_index]
     if obs_wrapper:
         drive_obs(wav, label)
-    # play_wav_on_device(wav=wav, device=device)
-    obs_wrapper.play_audio(wav=wav, callback=None)
+    if obs_wrapper:
+        obs_wrapper.play_audio(wav=wav, callback=None)
+    else:
+        play_wav_on_device(wav=wav, device=device)
 
 def play_obs():
     print("play_obs")
