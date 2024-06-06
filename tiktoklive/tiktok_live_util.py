@@ -23,6 +23,7 @@ from remote_config.et_service_util import llm_async
 from remote_config.et_service_util import tts_async
 from selenium.webdriver.common.by import By
 from bean.product import ScriptItem
+from bean.obs_item_wrapper import ObsItemWrapper
 
 last_chat_message = ""
 last_social_message = ""
@@ -322,6 +323,13 @@ def play_audio():
         drive_obs(wav, label)
     play_wav_on_device(wav=wav, device=device)
 
+def play_obs():
+    print("play_obs")
+    obs_item_wrapper = obs_queue.get()
+    if obs_wrapper:
+        result = obs_wrapper.play(obs_item_wrapper.label, obs_item_wrapper.obs_item["path"])
+        if result: 
+            last_label = obs_item_wrapper.label
 
 def in_recent_play_queue(path):
     for element in last_obs_queue:
@@ -345,7 +353,6 @@ def drive_obs(wav, label):
     global last_label
     wav_dur = get_wav_dur(wav)
     print(f"drive_obs:{label}, {wav_dur}")
-    # test_label_list = ["discount_now", "discount_in_live"]
 
     play_list = obs_wrapper.get_play_tag_list(label)
     #把最近播放过的（最近4个）排除掉，得出一个当前可用的list:
@@ -354,48 +361,31 @@ def drive_obs(wav, label):
         path = item["path"]
         if not in_recent_play_queue(path):
             available_list.append(item)
-    
 
     if obs_wrapper.is_playing:
         # OBS还要播放多久
         cur, obs_dur = obs_wrapper.get_play_status(last_label)
         remain_time = obs_dur - cur
-        # todo:
-        # if remain_time < 2:
-            # wait to play the next obs
-
-        # else:
-            # play
+        
+        if remain_time < 2: # 剩余小于2秒直接塞
+            suitable_item = get_suitable_obs(wav_dur=wav_dur,obs_list=available_list)
+            if suitable_item:
+                obs_queue.put(ObsItemWrapper(obs_item=suitable_item, label=label))
+        elif remain_time > wav_dur: # obs剩余的播放时长比当前要播放的TTS还长的话，就什么都不做。
+            print("remain_time > wav_dur ==>do nothing ")
+        else: #基于当前TTS下次超出的时间去找一个合适的视频
+            fix_time = wav_dur - remain_time
+            suitable_item = get_suitable_obs(wav_dur=fix_time,obs_list=available_list)
+            if suitable_item:
+                obs_queue.put(ObsItemWrapper(obs_item=suitable_item, label=label))
     else:
         #当前没有在播放OBS:
         suitable_item = get_suitable_obs(wav_dur=wav_dur,obs_list=available_list)
         if suitable_item:
-            obs_wrapper.play(label, suitable_item["path"])
-            # 记住上一次播放的obs label
-            last_label = label
+            obs_queue.put(ObsItemWrapper(obs_item=suitable_item, label=label))
         else:
-            # todo: 没有合适的怎么办？有兜底的吗，彭总。
-
-        
-
-    # todo: drive the obs
-    # 调用播放
-    # obs_wrapper.play(label, None)
-
-    # 获取视频列表数组 by label
-    # get_play_tag_list()
-
-    # 返回数据格式
-    # self.tags[tag].append({
-    #     "path": os.path.join(sub_tag_dir, tag),
-    #     "width": w,
-    #     "height": h,
-    #     "duration": video_duration,
-    #     "played": False
-    # })
-
-    # 获取还剩下多长的播放时长,如果没在播放返回0,0
-    # get_play_status
+            # todo: 没有合适的怎么办？有兜底的吗，@彭总。
+            print("没有合适的视频, 要兜底")
 
 
 async def prepare(ref_speaker_name):
@@ -464,18 +454,21 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
     force_stop = False
     print('is_prepare, is_play_prepare=', is_prepare(), ', ', is_play_prepare())
     thread = None
+    obs_thread = None
     if is_prepare():
         asyncio.run(prepare(ref_speaker_name))
     elif is_play_prepare():
         if obs_port > 0:
             obs_wrapper = OBScriptManager(obs_port, local_video_dir)
             obs_wrapper.start()
+            obs_thread = play_obs_cycle()
         thread = play_wav_cycle()
         asyncio.run(play_prepare(ref_speaker_name))
     else:
         if obs_port > 0:
             obs_wrapper = OBScriptManager(obs_port, local_video_dir)
             obs_wrapper.start()
+            obs_thread = play_obs_cycle()
         thread = play_wav_cycle()
         asyncio.run(live(ref_speaker_name))
     print('thread force stop', thread)
@@ -497,5 +490,19 @@ def play_wav_cycle():
     # 我发现现在跑 mode==2 的时候,thread.daemon=True 会导致它while循环一下子就跳出了,
     # 之前不会可能是因为有其他任务在执行,只剩它自己的话就会有问题了
     # thread.daemon = True
+    thread.start()
+    return thread
+
+def play_obs_cycle():
+    def worker():
+        global live_running, force_stop
+        while live_running or not force_stop:
+            try:
+                play_obs()
+            except Exception as ignore:
+                print(ignore)
+            time.sleep(0.1)
+
+    thread = threading.Thread(target=worker)
     thread.start()
     return thread
