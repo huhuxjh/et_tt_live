@@ -108,15 +108,55 @@ class Template:
         self.sys_inst = sys_inst
         self.role_play = role_play
         self.item_group = item_group
-        self.script_config: list[str] = [
-            # 'product_summary[2]'
-            'product_summary[2]', 'order_urging', 'product_summary[2]', 'order_urging',
-            'product_details[2]', 'product_welfare', 'product_details[3]', 'product_welfare', 'order_urging',
-            'product_details[2]', 'product_welfare', 'product_details[2]', 'product_welfare', 'order_urging',
-            'product_welfare[3]', 'order_urging'
-        ]
+        # todo: 从网络更新配置
+        self.template_tag_group = {
+            'welcome': ['welcome'],
+            'selling_point': ['selling_point_1', 'selling_point_2', 'selling_point_3', 'selling_point_4'],
+            'chat': ['chat_1', 'chat_2'],
+            'order_urging': ['order_urging'],
+            'bye': ['bye'],
+        }
+        # for (指定)count 1000
+        #     (判断有没有,0.5中概率,0-1) 随机welcome...n (去重)
+        #     随机selling_point_n (去重)
+        #     (判断有没有, 0.4中概率, 0-1) 随机selling_point_n(去重)
+        #     (判断有没有, 0.3小概率, 0-1) 随机selling_point_n(去重)
+        #     (判断有没有,0.1小概率,0-1) 随机是否要插入chat (去重)
+        #     (判断有没有,0.8大概率,0-1) 随机是否要插入order_urging (去重)
+        # 'bye'
+        self.script_config: list[str] = self.produce_config()
+
+    def produce_config(self, seed=1000) -> list[str]:
+        """
+        根据规则生成本场脚本配置文件
+        """
+        config_tas_list = []
+        for idx in range(seed):
+            # welcome
+            if len(config_tas_list) <= 0 or random.random() <= 0.5:
+                config_tas_list.append(random.choice(self.template_tag_group['welcome']))
+            # selling_point
+            selling_sample = random.sample(self.template_tag_group['selling_point'], 3)
+            config_tas_list.append(selling_sample[0])
+            if random.random() <= 0.4:
+                config_tas_list.append(selling_sample[1])
+            if random.random() <= 0.3:
+                config_tas_list.append(selling_sample[2])
+            # chat
+            if random.random() <= 0.1:
+                config_tas_list.append(random.choice(self.template_tag_group['chat']))
+            # order_urging
+            if random.random() <= 0.8:
+                config_tas_list.append(random.choice(self.template_tag_group['order_urging']))
+        # bye
+        config_tas_list.append(random.choice(self.template_tag_group['bye']))
+        # 返回config
+        return config_tas_list
 
     def produce_script(self) -> list[ScriptItem]:
+        """
+        根据配置生成脚本
+        """
         def convert(template_item: TemplateItem):
             template_item = ScriptItem(index=0, text=template_item.text, llm_infer=template_item.llm_infer,
                                        tts_type=template_item.tts_type, vid_label=template_item.vid_label)
@@ -142,5 +182,20 @@ class Template:
         # 返回生成的脚本列表
         return script_item_list
 
+    def produce_script_all(self) -> list[ScriptItem]:
+        """
+        用于生产全部脚本tts内容
+        """
+        def convert(template_item: TemplateItem):
+            template_item = ScriptItem(index=0, text=template_item.text, llm_infer=template_item.llm_infer,
+                                       tts_type=template_item.tts_type, vid_label=template_item.vid_label)
+            return template_item
 
+        script_item_list = []
+        for key, val_list in self.item_group.items():
+            script_item_list.extend(map(convert, val_list))
+        # 更新脚本步骤信息
+        script_item_list = [item.update(idx + 1) for idx, item in enumerate(script_item_list)]
+        # 返回生成的脚本列表
+        return script_item_list
 

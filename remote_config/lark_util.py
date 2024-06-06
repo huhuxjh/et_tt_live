@@ -1,4 +1,5 @@
 import os.path
+import shutil
 
 import lark_oapi as lark
 import json
@@ -155,6 +156,7 @@ def query_product_template(sheet_id, src_range) -> Template:
 
 def product_product_scrip(template: Template) -> Script:
     script_items = template.produce_script()
+    # script_items = template.produce_script_all()
     product = Script(context=template.context, sys_inst=template.sys_inst, role_play=template.role_play,
                      item_list=script_items)
     return product
@@ -174,6 +176,11 @@ def retrieve_script(config_id, sheet_id, src_range, reproduce=False):
         product = Script.from_file(script_path)
         # todo: 增加validation
     else:
+        # 删除缓存
+        if reproduce:
+            shutil.rmtree(base_dir)
+            os.makedirs(base_dir)
+        # 重新生成
         template = query_product_template(sheet_id, src_range)
         product = product_product_scrip(template)
         product.to_file(script_path)
