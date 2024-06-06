@@ -12,10 +12,10 @@ if __name__ == '__main__':
     config_id = "okL6Yo"
     config_src_range = 'B1:B9'
     obs_port = 4455
-    # 0: live 实时生成 
+    # 0: live 实时生成
     # 1: prepare 直播前准备 
     # 2: play prepare 播放准备素材
-    run_mode = 0
+    run_mode = "2"
     #  是否重新生成script
     reproduce = False
 

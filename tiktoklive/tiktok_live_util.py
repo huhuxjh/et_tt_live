@@ -41,9 +41,10 @@ urgent_query_queue = queue.Queue(maxsize=10)
 urgent_tts_queue = queue.Queue(maxsize=10)
 
 # 最近4个OBS视频不能重复
-last_obs_queue = deque(maxlen=4)
+last_obs_queue = deque(maxlen=2)
 
-obs_queue = queue.Queue(maxsize=3)
+# obs_queue = queue.Queue(maxsize=3)
+obs_queue = []
 
 obs_wrapper = None
 
@@ -303,7 +304,7 @@ def get_wav_dur(wav):
     return duration
 
 
-def play_audio():
+def play_audio(callback):
     print("play_audio")
     # 输出设备
     from sounddevice_wrapper import SOUND_DEVICE_NAME
@@ -320,23 +321,35 @@ def play_audio():
     print(f"end to get tts queue, size:{tts_queue.qsize()}")
     device = device_list[device_index]
     if obs_wrapper:
-        drive_obs(wav, label)
+        drive_video(wav, label)
     if obs_wrapper:
-        obs_wrapper.play_audio(wav=wav, callback=None)
+        print(str(time.time()) + f"play_audio  -->  {wav}")
+        obs_wrapper.play_audio(wav=wav, callback=callback)
     else:
         play_wav_on_device(wav=wav, device=device)
+        callback()
 
-def play_obs():
-    print("play_obs")
-    obs_item_wrapper = obs_queue.get()
+def play_video(callback):
+    global obs_queue
+    print(f"try play_obs, obs_queue:{len(obs_queue)}")
+    if len(obs_queue) == 0:
+        return False
+    obs_item_wrapper = obs_queue[0]
+    if len(obs_queue) > 1:
+        obs_queue = obs_queue[1:]
+    print(f"play_obs obs_item_wrapper:{obs_item_wrapper.obs_item['duration']}")
     if obs_wrapper:
-        result = obs_wrapper.play_video(obs_item_wrapper.label, obs_item_wrapper.obs_item["path"])
+        print(str(time.time()) +"=========== play " + obs_item_wrapper.obs_item["path"])
+        return obs_wrapper.play_video(obs_item_wrapper.label, obs_item_wrapper.obs_item["path"],callback=callback)
+    return False
+
 
 def in_recent_play_queue(path):
     for element in last_obs_queue:
         if element == path:
             return True
     return False
+
 
 # 找可用的，与wav时长最接近的obs
 def get_suitable_obs(wav_dur, obs_list):
@@ -350,42 +363,46 @@ def get_suitable_obs(wav_dur, obs_list):
     return suitable_item
 
 
-def drive_obs(wav, label):
+def drive_video(wav, label):
     wav_dur = get_wav_dur(wav)
-    print(f"drive_obs:{label}, {wav_dur}")
+    print(f"drive_video:{label}, {wav_dur}")
 
     play_list = obs_wrapper.get_play_tag_list(label)
-    #把最近播放过的（最近4个）排除掉，得出一个当前可用的list:
+    # 把最近播放过的（最近4个）排除掉，得出一个当前可用的list:
     available_list = []
     for item in play_list:
         path = item["path"]
         if not in_recent_play_queue(path):
             available_list.append(item)
 
-    if obs_wrapper.is_playing():
-        # OBS还要播放多久
-        cur, obs_dur = obs_wrapper.get_video_status()
-        remain_time = obs_dur - cur
-        
-        if remain_time < 2: # 剩余小于2秒直接塞
-            suitable_item = get_suitable_obs(wav_dur=wav_dur,obs_list=available_list)
+    global obs_queue
+    cur, obs_dur = obs_wrapper.get_video_status()
+    # Video还要播放多久
+    remain_time = obs_dur - cur
+    if obs_dur > 0 and remain_time > 0:
+        if remain_time < 2:  # 剩余小于2秒直接塞
+            suitable_item = get_suitable_obs(wav_dur=wav_dur, obs_list=available_list)
             if suitable_item:
-                obs_queue.put(ObsItemWrapper(obs_item=suitable_item, label=label))
-        elif remain_time > wav_dur: # obs剩余的播放时长比当前要播放的TTS还长的话，就什么都不做。
+                print("put obs_queue: remain_time < 2")
+                obs_queue.append(ObsItemWrapper(obs_item=suitable_item, label=label))
+        elif remain_time > wav_dur:  # obs剩余的播放时长比当前要播放的TTS还长的话，就什么都不做。
             print("remain_time > wav_dur ==>do nothing ")
-        else: #基于当前TTS下次超出的时间去找一个合适的视频
+        else:  # 基于当前TTS下次超出的时间去找一个合适的视频
             fix_time = wav_dur - remain_time
-            suitable_item = get_suitable_obs(wav_dur=fix_time,obs_list=available_list)
+            suitable_item = get_suitable_obs(wav_dur=fix_time, obs_list=available_list)
             if suitable_item:
-                obs_queue.put(ObsItemWrapper(obs_item=suitable_item, label=label))
+                obs_queue.append(ObsItemWrapper(obs_item=suitable_item, label=label))
+                print("put obs_queue: obs is_playing")
+
     else:
-        #当前没有在播放OBS:
-        suitable_item = get_suitable_obs(wav_dur=wav_dur,obs_list=available_list)
+        # 当前没有在播放Video:
+        suitable_item = get_suitable_obs(wav_dur=wav_dur, obs_list=available_list)
         if suitable_item:
-            obs_queue.put(ObsItemWrapper(obs_item=suitable_item, label=label))
+            obs_queue.append(ObsItemWrapper(obs_item=suitable_item, label=label))
+            print("put obs_queue: obs is not playing")
         else:
-            # todo: 没有合适的怎么办？有兜底的吗，@彭总。
-            print("没有合适的视频, 要兜底")
+            print("no suitable video, use default label video")
+            # drive_video(wav, "default")
 
 
 async def prepare(ref_speaker_name):
@@ -453,56 +470,116 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
     live_running = True
     force_stop = False
     print('is_prepare, is_play_prepare=', is_prepare(), ', ', is_play_prepare())
-    thread = None
-    obs_thread = None
+    audio_thread = None
+    video_thread = None
     if is_prepare():
         asyncio.run(prepare(ref_speaker_name))
     elif is_play_prepare():
         if obs_port > 0:
-            obs_wrapper = OBScriptManager(obs_port, local_video_dir)
+            obs_wrapper = OBScriptManager(obs_port, local_video_dir, True)
             obs_wrapper.start()
-            obs_thread = play_obs_cycle()
-        thread = play_wav_cycle()
+            # video_thread = play_video_cycle()
+        audio_thread = play_wav_cycle()
         asyncio.run(play_prepare(ref_speaker_name))
     else:
         if obs_port > 0:
-            obs_wrapper = OBScriptManager(obs_port, local_video_dir)
+            obs_wrapper = OBScriptManager(obs_port, local_video_dir, True)
             obs_wrapper.start()
-            obs_thread = play_obs_cycle()
-        thread = play_wav_cycle()
+            # video_thread = play_video_cycle()
+        audio_thread = play_wav_cycle()
         asyncio.run(live(ref_speaker_name))
-    print('thread force stop', thread)
-    if thread and thread.is_alive():
-        force_stop = True        
-
+    print('thread force stop', audio_thread)
+    if audio_thread and audio_thread.is_alive():
+        force_stop = True
 
 def play_wav_cycle():
     def worker():
         global live_running, force_stop
         while live_running or not force_stop:
             try:
-                play_audio()
+                a1,a2 = obs_wrapper.get_audio_status()
+                if a2 == 0 or (a2 - a1) == 0:
+                    play_audio(None)
+
+                v1,v2 = obs_wrapper.get_video_status()
+                if v2 == 0 or (v2 - v1) == 0:
+                    play_video(None)
             except soundfile.LibsndfileError as ignore:
                 print(ignore)
             time.sleep(0.1)
 
     thread = threading.Thread(target=worker)
-    # 我发现现在跑 mode==2 的时候,thread.daemon=True 会导致它while循环一下子就跳出了,
-    # 之前不会可能是因为有其他任务在执行,只剩它自己的话就会有问题了
-    # thread.daemon = True
     thread.start()
     return thread
 
-def play_obs_cycle():
-    def worker():
-        global live_running, force_stop
-        while live_running or not force_stop:
-            try:
-                play_obs()
-            except Exception as ignore:
-                print(ignore)
-            time.sleep(0.1)
 
-    thread = threading.Thread(target=worker)
-    thread.start()
-    return thread
+#
+# end = False
+#
+#
+# def play_wav_cycle():
+#     def worker():
+#         global live_running, force_stop
+#         while live_running or not force_stop:
+#             try:
+#                 global end
+#                 end = False
+#
+#                 def complete():
+#                     global end
+#                     end = True
+#
+#                 play_audio(complete)
+#                 while not end:
+#                     time.sleep(1)
+#             except soundfile.LibsndfileError as ignore:
+#                 print(ignore)
+#             time.sleep(0.5)
+#
+#     thread = threading.Thread(target=worker)
+#     thread.start()
+#     return thread
+#
+
+# video_end = False
+#
+#
+# def play_video_cycle():
+#     def worker():
+#         global live_running, force_stop
+#         while live_running or not force_stop:
+#             try:
+#                 global video_end
+#                 video_end = False
+#
+#                 def video_complete():
+#                     print("receive video_complete")
+#                     global video_end
+#                     video_end = True
+#                 if play_video(video_complete):
+#                     while not video_end:
+#                         time.sleep(1)
+#             except Exception as ignore:
+#                 print(ignore)
+#             time.sleep(0.5)
+#
+#     thread = threading.Thread(target=worker)
+#     thread.start()
+#     return thread
+# from template_generator import ffmpeg as template_ffmpeg
+# for root, dirs, files in os.walk("D:\\video_normal"):
+#     for file in files:
+#         # 检查文件扩展名是否匹配
+#         if any(file.lower().endswith(ext) for ext in ['.mp4', '.avi', '.mov']):
+#             src = os.path.join(root, file)
+#             dst = os.path.join(root, file.replace(".MOV", "_.MOV").replace(".mov", "_.mov"))
+#             template_ffmpeg.process([
+#                 "-i",
+#                 src,
+#                 "-metadata:s:v:0",
+#                 "rotate=0",
+#                 "-y",
+#                 dst
+#             ], "")
+#             os.remove(src)
+#             os.rename(dst, src)

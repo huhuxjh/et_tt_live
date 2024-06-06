@@ -13,6 +13,7 @@ from template_generator import ffmpeg as template_ffmpeg
 OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART = 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART'
 OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE = 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'
 OBS_MEDIA_WAV_NAME = "wav"
+OBS_MEDIA_VIDEO_NAME = "video"
 
 class EventObserver:
     def __init__(self, add_filter):
@@ -51,7 +52,7 @@ class EventObserver:
 
     def play_audio(self, wav, audio_callback):
         self.audio_callback = audio_callback
-        if self.has_source("wav") == False:
+        if self.has_source(OBS_MEDIA_WAV_NAME) == False:
             self._request.create_input(self._curScene, OBS_MEDIA_WAV_NAME, "ffmpeg_source", {
                 "local_file": "",
                 "is_local_file": True,
@@ -71,7 +72,7 @@ class EventObserver:
         self._request.disconnect()
 
     def on_media_input_playback_started(self, data):
-        print('[OBS] ' + data.input_name +' play start')
+        print(str(time.time()) + '[OBS] ' + data.input_name +' play start')
         with self._lock:
             self._playingSources.add(self._curScene + "_" + data.input_name)
             # for item in self._sceneLayers:
@@ -125,10 +126,13 @@ class EventObserver:
                 trans['positionX'] = self._curSceneWidth/2 - source_config["width"] / 2 * base_scale
                 self._request.set_scene_item_transform(self._curScene, item['sceneItemId'], trans)
                 self._request.set_scene_item_enabled(self._curScene, item['sceneItemId'], True)
+                print(str(time.time()) + "=========== start play")
                 self._request.trigger_media_input_action(key, OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART)
+                return True
+        return False
         
     def on_media_input_playback_ended(self, data):
-        print('[OBS] ' + data.input_name + " play end")
+        print(str(time.time()) + '[OBS] ' + data.input_name + " play end")
         with self._lock:
             for item in self._sceneLayers:
                 if item['sourceName'] == data.input_name and (item["sourceName"] in self._control_layers):
@@ -201,9 +205,10 @@ class OBScriptManager :
         return self.tags[tag]
     
     def get_video_status(self):
-        resp = self._observer._request.get_media_input_status(self._curPlayingVideo)
-        if resp.media_state == 'OBS_MEDIA_STATE_PLAYING':
-            return resp.media_cursor / 1000.0, resp.media_duration / 1000.0
+        if len(self._curPlayingVideo) > 0:
+            resp = self._observer._request.get_media_input_status(self._curPlayingVideo)
+            if resp.media_state == 'OBS_MEDIA_STATE_PLAYING':
+                return resp.media_cursor / 1000.0, resp.media_duration / 1000.0
         return 0, 0
     
     def get_audio_status(self):
@@ -213,8 +218,6 @@ class OBScriptManager :
         return 0, 0
     
     def play_video(self, tag, mp4=None, callback=None):
-        if self.is_playing() == True:
-            return False
         print("[OBS-Control] play tag "+ tag)
         if tag not in self.tags:
             return False
@@ -232,16 +235,13 @@ class OBScriptManager :
             else:
                 play_mp4 = random.choice(has_files)
             play_mp4["played"] = True
-        if self._observer.has_source(tag) == False:
-            self._observer.create_input(tag, play_mp4["path"])
+        if self._observer.has_source(OBS_MEDIA_VIDEO_NAME) == False:
+            self._observer.create_input(OBS_MEDIA_VIDEO_NAME, play_mp4["path"])
         else:
-            self._observer.update_input(tag, play_mp4["path"])
+            self._observer.update_input(OBS_MEDIA_VIDEO_NAME, play_mp4["path"])
         with self._observer._lock:
-            if len(self._observer._playingSources) > 0:
-                print("[OBS-Control] Current scene layer video is playing: " + str(self._observer._playingSources))
-                return False
-            self._curPlayingVideo = tag
-            self._observer.play_video(tag, play_mp4, callback)
+            self._curPlayingVideo = OBS_MEDIA_VIDEO_NAME
+            self._observer.play_video(OBS_MEDIA_VIDEO_NAME, play_mp4, callback)
             return True
     
     def play_audio(self, wav, callback=None):
