@@ -1,12 +1,9 @@
 import lark_oapi as lark
 import json
 import requests
-from lark_oapi.api.sheets.v3 import *
-from lark_oapi.api.authen.v1 import *
 
-from bean.product import Product
+from bean.product import Script, ScriptItem, Template, TemplateItem
 from bean.scene import Scene
-from bean.product import ContentItem
 
 app_id = 'cli_a6c746e54a39d013'
 app_secret = 'Qs2g6mBytqhN32CVUE1xKhxgR2iigHdi'
@@ -82,28 +79,48 @@ def query_assist_script(sheet_id, src_range):
         scenes.append(scene)
     return scenes
 
-def query_product_script(sheet_id, src_range):
-    datas = query_range(sheet_id, src_range)
-    context = datas.pop(0)[0]
-    sys_inst = datas.pop(0)[0]
-    role_play_head = datas.pop(0)[0]
-    contentList = []
-    for idx, val in enumerate(datas):
-        index = idx + 1
-        text = val[0]
-        if isinstance(text, list):
-            text = ''.join([item['text'] for item in text])
-        keep = val[1]
-        spc_type = val[2]
-        label = val[3]
-        content = ContentItem(index=index, text=text, keep=keep, spc_type=spc_type, label=label)
-        contentList.append(content)
 
-    role_play = '\n'.join([f'{val.index}.{val.text}' for idx, val in enumerate(contentList)])
-    role_play = f'{role_play_head}\n{role_play}'
-    product = Product(context= context, sys_inst= sys_inst, role_play_head= role_play_head, role_play= role_play, contentList= contentList)
+def to_text_safety(text):
+    if isinstance(text, list):
+        text = ''.join([item['text'] for item in text])
+    return text
+
+
+def query_product_template(sheet_id, src_range) -> Template:
+    datas = query_range(sheet_id, src_range)
+    role_play = datas.pop(0)[1]
+    product_info = datas.pop(0)[1]
+    sys_inst = datas.pop(0)[1]
+    item_list = []
+    for idx, val in enumerate(datas):
+        template_tag = to_text_safety(val[0])
+        text = to_text_safety(val[1])
+        llm_infer = to_text_safety(val[2])
+        tts_type = to_text_safety(val[3])
+        vid_label = to_text_safety(val[4])
+        template_item = TemplateItem(template_tag=template_tag, text=text,
+                                     llm_infer=llm_infer, tts_type=tts_type, vid_label=vid_label)
+        item_list.append(template_item)
+    # 模板脚本分组
+    item_group: dict[str, list] = {}
+    for item in item_list:
+        if item.template_tag in item_group:
+            item_group[item.template_tag].append(item)
+        else:
+            item_group[item.template_tag] = [item]
+    # 生成模板实例
+    template = Template(context=product_info, sys_inst=sys_inst, role_play=role_play,
+                        item_group=item_group)
+    return template
+
+
+def product_product_scrip(template: Template) -> Script:
+    script_items = template.produce_script()
+    product = Script(context=template.context, sys_inst=template.sys_inst, role_play=template.role_play,
+                     item_list=script_items)
     return product
 
 
 if __name__ == "__main__":
-    query_assist_script()
+    # query_assist_script()
+    pass

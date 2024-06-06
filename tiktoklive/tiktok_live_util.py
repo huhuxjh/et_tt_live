@@ -21,7 +21,7 @@ from et_dirs import outputs_v2
 from remote_config.et_service_util import llm_async
 from remote_config.et_service_util import tts_async
 from selenium.webdriver.common.by import By
-from bean.product import ContentItem
+from bean.product import ScriptItem
 
 last_chat_message = ""
 last_social_message = ""
@@ -60,7 +60,7 @@ follow_reply_list = [
 
 
 async def list_prepare_tts_task():
-    for _, val in enumerate(product_script.contentList):
+    for _, val in enumerate(product_script.item_list):
         wav = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{val.index}_{device_index}.wav')
         if os.path.exists(wav):
             val.wav = wav
@@ -204,9 +204,12 @@ async def chat_task():
 async def llm_query_task():
     global live_running
     while live_running:
-        for _, val in enumerate(product_script.contentList):
-            if val.reproduce: await llm_query(val)
+        for _, val in enumerate(product_script.item_list):
+            await llm_query(val)
         live_running = False
+    # 结束协程
+    global llm_task
+    llm_task.done()
 
 
 async def llm_query(content_item):
@@ -214,15 +217,14 @@ async def llm_query(content_item):
     context = product_script.context
     sys_inst = product_script.sys_inst
     role_play = product_script.role_play
-    keep = content_item.keep
+    keep = content_item.llm_infer
     # with timer('qa-llama_v3'):
     if keep == 1:
         an = content_item.text.replace('\n', ' ')
     else:
         an = await llm_async(query, role_play, context, sys_inst, 3, 1.05)
-    new_content_item = ContentItem(index=content_item.index, text=an, keep=content_item.keep,
-                                   spc_type=content_item.spc_type, label=content_item.label,
-                                   reproduce=content_item.reproduce)
+    new_content_item = ScriptItem(index=content_item.index, text=an, llm_infer=content_item.llm_infer,
+                                  tts_type=content_item.tts_type, vid_label=content_item.vid_label)
     query_queue.put(new_content_item)
     print(f"query_queue put size:{query_queue.qsize()}")
     await asyncio.sleep(1)
@@ -238,6 +240,9 @@ async def create_tts_task(ref_speaker_name):
         elif not live_running:
             break
         await asyncio.sleep(1)
+    # 结束协程
+    global tts_task
+    tts_task.done()
 
 
 async def create_tts(content_item, ref_speaker_name):
@@ -269,7 +274,7 @@ async def create_tts(content_item, ref_speaker_name):
     with timer('tts-local'):
         ref_name, _ = os.path.splitext(os.path.basename(random.choice(ref_audios)))
         output_name, _ = os.path.splitext(os.path.basename(out))
-        wav = await tts_async(an, ref_name, output_name, content_item.spc_type)
+        wav = await tts_async(an, ref_name, output_name, content_item.tts_type)
         wav = wav.replace('"', '')
         # 复制到本地
         shutil.copy(wav, out)
@@ -297,10 +302,11 @@ def play_audio():
     #     # todo:优先插入紧急TTS
     content_item = tts_queue.get()
     wav = content_item.wav
-    label = content_item.label
+    label = content_item.vid_label
     print(f"end to get tts queue, size:{tts_queue.qsize()}")
     device = device_list[device_index]
-    drive_obs(wav, label)
+    if obs_wrapper:
+        drive_obs(wav, label)
     play_wav_on_device(wav=wav, device=device)
 
 
@@ -333,7 +339,8 @@ async def prepare(ref_speaker_name):
     print("live mode: prepare")
     t5 = asyncio.create_task(llm_query_task())
     t6 = asyncio.create_task(create_tts_task(ref_speaker_name))
-    await asyncio.gather(t5, t6)
+    ret = await asyncio.gather(t5, t6)
+    print("live mode: prepare", ret)
 
 
 async def play_prepare(ref_speaker_name):
@@ -343,18 +350,21 @@ async def play_prepare(ref_speaker_name):
     # t3 = asyncio.create_task(broadcast_task())
     # t4 = asyncio.create_task(chat_task())
     t5 = asyncio.create_task(list_prepare_tts_task())
-    await asyncio.gather(t5)
+    ret = await asyncio.gather(t5)
+    print("live mode: play_prepare", ret)
 
 
 async def live(ref_speaker_name):
-    print("live mode: live")
+    print("live mode: live start")
     # t1 = asyncio.create_task(enter_task())
     # t2 = asyncio.create_task(social_task())
     # t3 = asyncio.create_task(broadcast_task())
     # t4 = asyncio.create_task(chat_task())
-    t5 = asyncio.create_task(llm_query_task())
-    t6 = asyncio.create_task(create_tts_task(ref_speaker_name))
-    await asyncio.gather(t5, t6)
+    global llm_task, tts_task
+    llm_task = asyncio.create_task(llm_query_task())
+    tts_task = asyncio.create_task(create_tts_task(ref_speaker_name))
+    ret = await asyncio.gather(llm_task, tts_task)
+    print("live mode: live end", ret)
 
 
 def is_prepare():
@@ -381,26 +391,30 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
     global live_running
     live_running = True
     print('is_prepare, is_play_prepare=', is_prepare(), ', ', is_play_prepare())
+    thread = None
+    coroutine = None
     if is_prepare():
         asyncio.run(prepare(ref_speaker_name))
     elif is_play_prepare():
         if obs_port > 0:
             obs_wrapper = OBScriptManager(obs_port, local_video_dir)
             obs_wrapper.start()
-        play_wav_cycle()
-        asyncio.run(play_prepare(ref_speaker_name))
+        thread = play_wav_cycle()
+        coroutine = asyncio.run(play_prepare(ref_speaker_name))
     else:
         if obs_port > 0:
             obs_wrapper = OBScriptManager(obs_port, local_video_dir)
             obs_wrapper.start()
-        play_wav_cycle()
-        asyncio.run(live(ref_speaker_name))
+        thread = play_wav_cycle()
+        coroutine = asyncio.run(live(ref_speaker_name))
+    print('coroutine===================>', coroutine)
+    print('thread======================>', thread)
 
 
 def play_wav_cycle():
     def worker():
         global live_running
-        while live_running or tts_queue.not_empty > 0:
+        while live_running or not tts_queue.empty():
             try:
                 play_audio()
             except soundfile.LibsndfileError as ignore:
@@ -412,3 +426,4 @@ def play_wav_cycle():
     # 之前不会可能是因为有其他任务在执行,只剩它自己的话就会有问题了
     # thread.daemon = True
     thread.start()
+    return thread

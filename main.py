@@ -54,12 +54,13 @@ if __name__ == '__main__':
         f"browser: {browserId},\nproduct_sheet: {product_sheet},"
         f"\nproduct_range:{product_range},\nassist_sheet: {assist_sheet},\nassist_range:{assist_range}")
     # 获取商品脚本
-    product = lark_util.query_product_script(product_sheet, product_range)
+    template = lark_util.query_product_template(product_sheet, product_range)
     # reproduce_list = [1,9,10,14,15,18,28,32,33,34,40,42,44,47,56,62,65,67,69,70,73,75,76,79,84,94,98,100,
     #                   107,111,112,114,126,127,130,135,135,138,142,149,155,156,159,160,161,163,164]
-    reproduce_list = [164]
-    for item in product.contentList:
-        item.reproduce = (item.index in reproduce_list)
+    # for item in product.contentList:
+    #     item.reproduce = (item.index in reproduce_list)
+    product = lark_util.product_product_scrip(template)
+    # print(product.dumps())
     # 获取助播脚本
     scenes = lark_util.query_assist_script(assist_sheet, assist_range)
     start(browserId, scenes, product, ref_speaker_name, device_id, obs_port, mode, configId)
