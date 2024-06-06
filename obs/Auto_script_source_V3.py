@@ -12,20 +12,23 @@ import random
 from template_generator import ffmpeg as template_ffmpeg
 OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART = 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART'
 OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE = 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'
+OBS_MEDIA_WAV_NAME = "wav"
 
 class EventObserver:
     def __init__(self, add_filter):
         self._control_layers = []
+        self._sceneLayers = []
         self._curScene = ""
         self._curSceneWidth = 0
         self._curSceneHeight = 0
         self.add_filter = add_filter
+        self.video_callback = None
+        self.audio_callback = None
         self._lock = threading.Lock()
         self._callback = Callback()
         self._playingSources = set()
     def __enter__(self):
         return self
-    
     def __exit__(self, exc_type, exc_value, exc_traceback):
         return
     
@@ -33,21 +36,42 @@ class EventObserver:
         self._event = obs.EventClient(**kwargs)
         kwargs["subs"] = 0
         self._request = obs.ReqClient(**kwargs)
-        self._event.callback.register(
-            [
+        self._event.callback.register([
                 self.on_media_input_playback_started,
                 self.on_media_input_playback_ended,
                 self.on_current_program_scene_changed,
                 self.on_exit_started,
-            ]
-        )
+            ])
+        response = self._request.get_scene_list()
+        self._curScene = response.current_program_scene_name
+        video_setting = self._request.get_video_settings()
+        self._curSceneWidth = video_setting.base_width
+        self._curSceneHeight = video_setting.base_height
+        self._sceneLayers = self._request.get_scene_item_list(self._curScene).scene_items
+
+    def play_audio(self, wav, audio_callback):
+        self.audio_callback = audio_callback
+        if self.has_source("wav") == False:
+            self._request.create_input(self._curScene, OBS_MEDIA_WAV_NAME, "ffmpeg_source", {
+                "local_file": "",
+                "is_local_file": True,
+                "looping": False
+            }, True)
+        self._request.set_input_settings(OBS_MEDIA_WAV_NAME, {
+            "local_file": wav,
+            "looping": False
+            }, True)
+        for item in self._sceneLayers:
+            if item['sourceName'] == OBS_MEDIA_WAV_NAME:
+                self._request.set_scene_item_enabled(self._curScene, item['sceneItemId'], True)
+                self._request.trigger_media_input_action(OBS_MEDIA_WAV_NAME, OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART)
 
     def stop(self):
         self._event.disconnect()
         self._request.disconnect()
 
     def on_media_input_playback_started(self, data):
-        print('OBS current scene MediaInput: ' + data.input_name +' Playback Started')
+        print('[OBS] ' + data.input_name +' play start')
         with self._lock:
             self._playingSources.add(self._curScene + "_" + data.input_name)
             # for item in self._sceneLayers:
@@ -76,6 +100,7 @@ class EventObserver:
                 'smoothness':88,
                 'spill':10
             })
+        self._sceneLayers = self._request.get_scene_item_list(self._curScene).scene_items
     
     def update_input(self, key, mp4):
         if key not in self._control_layers:
@@ -85,7 +110,8 @@ class EventObserver:
             "looping": False
         }, True)
         
-    def play_source(self, key, source_config):
+    def play_video(self, key, source_config, video_callback):
+        self.video_callback = video_callback
         self._playingSources.add(self._curScene + "_" + key)
         for item in self._sceneLayers:
             if item['sourceName'] == key:
@@ -102,17 +128,21 @@ class EventObserver:
                 self._request.trigger_media_input_action(key, OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART)
         
     def on_media_input_playback_ended(self, data):
-        print('OBS current scene MediaInput: ' + data.input_name +' Playback Ended')
+        print('[OBS] ' + data.input_name + " play end")
         with self._lock:
             for item in self._sceneLayers:
-                if item['sourceName'] == data.input_name and item["sourceName"] in self._control_layers:
+                if item['sourceName'] == data.input_name and (item["sourceName"] in self._control_layers):
                     self._request.set_scene_item_enabled(self._curScene, item['sceneItemId'], False)
-                    break
+                    if self.video_callback:
+                        self.video_callback()
+                elif item['sourceName'] == data.input_name and item["sourceName"] == OBS_MEDIA_WAV_NAME:
+                    if self.audio_callback:
+                        self.audio_callback()
             self._playingSources.discard(self._curScene + "_" + data.input_name)
         self._callback.Trigger("onMediaInputPlaybackEnded", data)
 
     def on_current_program_scene_changed(self, data):
-        print(f"OBS Set current scene to: {data.scene_name} !!!!!!!!!!")
+        print(f"[OBS] on_current_program_scene_changed: {data.scene_name}")
         with self._lock:
             if self._curScene != data.scene_name:
                 self._curScene = data.scene_name
@@ -121,7 +151,7 @@ class EventObserver:
         self._callback.Trigger("onCurrentSceneChanged", data)
 
     def on_exit_started(self, _):
-        print("OBS closing!")
+        print("[OBS] closing!")
 
 class OBScriptManager :
     def __init__(self, port, sub_tag_dir, add_filter=False):
@@ -129,6 +159,7 @@ class OBScriptManager :
         self.maxCommandNum = 1
         self._observer = EventObserver(add_filter)
         self._isInitialized = False
+        self._curPlayingVideo = ""
         self.tags = {}
         if os.path.isdir(sub_tag_dir):
             all_tags = os.listdir(sub_tag_dir)
@@ -169,16 +200,22 @@ class OBScriptManager :
             return []
         return self.tags[tag]
     
-    def get_play_status(self, tag):
-        resp = scriptMgr._observer._request.get_media_input_status(tag)
+    def get_video_status(self):
+        resp = self._observer._request.get_media_input_status(self._curPlayingVideo)
         if resp.media_state == 'OBS_MEDIA_STATE_PLAYING':
-            return resp.media_cursor, resp.media_duration
+            return resp.media_cursor / 1000.0, resp.media_duration / 1000.0
         return 0, 0
     
-    def play(self, tag, mp4=None):
+    def get_audio_status(self):
+        resp = self._observer._request.get_media_input_status(OBS_MEDIA_WAV_NAME)
+        if resp.media_state == 'OBS_MEDIA_STATE_PLAYING':
+            return resp.media_cursor / 1000.0, resp.media_duration / 1000.0
+        return 0, 0
+    
+    def play_video(self, tag, mp4=None, callback=None):
         if self.is_playing() == True:
             return False
-        print("play tag "+ tag)
+        print("[OBS-Control] play tag "+ tag)
         if tag not in self.tags:
             return False
         if mp4:
@@ -195,49 +232,22 @@ class OBScriptManager :
             else:
                 play_mp4 = random.choice(has_files)
             play_mp4["played"] = True
-        self.set_layer_source(tag, play_mp4["path"])
+        if self._observer.has_source(tag) == False:
+            self._observer.create_input(tag, play_mp4["path"])
+        else:
+            self._observer.update_input(tag, play_mp4["path"])
         with self._observer._lock:
             if len(self._observer._playingSources) > 0:
-                print("OBS Current scene layer video is playing: " + str(self._observer._playingSources))
+                print("[OBS-Control] Current scene layer video is playing: " + str(self._observer._playingSources))
                 return False
-            self._observer.play_source(tag, play_mp4)
+            self._curPlayingVideo = tag
+            self._observer.play_video(tag, play_mp4, callback)
             return True
     
-    def set_layer_source(self, layer, source):
-        if self._observer.has_source(layer) == False:
-            self._observer.create_input(layer, source)
-            self.update_current_scene(self._observer._curScene)
-        else:
-            self._observer.update_input(layer, source)
-    
-    def flush_scenes(self):
-        response = self._observer._request.get_scene_list()
-        self._sceneList = response.scenes
+    def play_audio(self, wav, callback=None):
         with self._observer._lock:
-            self._observer._curScene = response.current_program_scene_name
-        return self._sceneList
-    
-    def update_current_scene(self, scene_name) :
-        print("Script Set Current Scene to: "+ scene_name)
-        found = False
-        for item in self._sceneList:
-            if item['sceneName'] == scene_name :
-                found = True
-                break
-        if found == False:
-            print("Script Current Scene cound not be found: " + scene_name)
-            return False
-
-        sceneLayers = self._observer._request.get_scene_item_list(scene_name).scene_items
-        video_setting = self._observer._request.get_video_settings()
-        with self._observer._lock:
-            self._observer._curScene = scene_name
-            self._observer._curSceneWidth = video_setting.base_width
-            self._observer._curSceneHeight = video_setting.base_height
-            self._observer._sceneLayers = sceneLayers
-            self._observer._request.set_current_program_scene(scene_name)
-        
-        return True
+            self._observer.play_audio(wav, callback)
+            return True
 
     def start(self):
         if self._isInitialized == False:
@@ -247,8 +257,6 @@ class OBScriptManager :
             }
             self._observer.start(**ekwargs)
             self._isInitialized = True
-            self.flush_scenes()
-            self.update_current_scene(self._observer._curScene)
 
     def stop(self):
         if self._isInitialized:
@@ -265,6 +273,30 @@ if __name__ == "__main__":
     scriptMgr = OBScriptManager(obs_port, "D:\\video_normal", True)
     scriptMgr.start()
     print(scriptMgr.get_play_tag_list("discount_now"))
+    idx = 0
+    def video_callback():
+        print("======================= video end")
+    def audio_callback():
+        print("======================= audio end")
     while True:
-        scriptMgr.play(random.choice(["discount_in_live", "discount_now"]), None)
-        time.sleep(10)
+        if scriptMgr.is_playing():
+            print("======================= 上一个未播完，等待下一次")
+            time.sleep(2)
+            continue
+            
+        tag = random.choice(["discount_in_live", "discount_now"])
+        if idx > 3:
+            idx = 0
+        wav = ["D:\\audios\\tts_2_0.wav","D:\\audios\\tts_18_0.wav","D:\\audios\\tts_44_0.wav","D:\\audios\\tts_56_0.wav"][idx]
+        print("======================= play")
+        print("======================= audio " + wav)
+        print("======================= video " + tag)
+        scriptMgr.play_video(tag, None, video_callback)
+        scriptMgr.play_audio(wav, audio_callback)
+        time.sleep(2)
+        v1, v2 = scriptMgr.get_audio_status()
+        print("======================= audio 进度：" + str(v1) + "," + str(v2))
+        v1, v2 = scriptMgr.get_video_status()
+        print("======================= video 进度：" + str(v1) + "," + str(v2))
+        time.sleep(2)
+        idx += 1
