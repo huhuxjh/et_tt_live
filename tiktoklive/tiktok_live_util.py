@@ -328,8 +328,6 @@ def play_obs():
     obs_item_wrapper = obs_queue.get()
     if obs_wrapper:
         result = obs_wrapper.play(obs_item_wrapper.label, obs_item_wrapper.obs_item["path"])
-        if result: 
-            last_label = obs_item_wrapper.label
 
 def in_recent_play_queue(path):
     for element in last_obs_queue:
@@ -350,7 +348,6 @@ def get_suitable_obs(wav_dur, obs_list):
 
 
 def drive_obs(wav, label):
-    global last_label
     wav_dur = get_wav_dur(wav)
     print(f"drive_obs:{label}, {wav_dur}")
 
@@ -364,7 +361,7 @@ def drive_obs(wav, label):
 
     if obs_wrapper.is_playing:
         # OBS还要播放多久
-        cur, obs_dur = obs_wrapper.get_play_status(last_label)
+        cur, obs_dur = obs_wrapper.get_play_status()
         remain_time = obs_dur - cur
         
         if remain_time < 2: # 剩余小于2秒直接塞
@@ -473,7 +470,7 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
         asyncio.run(live(ref_speaker_name))
     print('thread force stop', thread)
     if thread and thread.is_alive():
-        force_stop = True
+        force_stop = True        
 
 
 def play_wav_cycle():
