@@ -327,7 +327,7 @@ def play_obs():
     print("play_obs")
     obs_item_wrapper = obs_queue.get()
     if obs_wrapper:
-        result = obs_wrapper.play(obs_item_wrapper.label, obs_item_wrapper.obs_item["path"])
+        result = obs_wrapper.play_video(obs_item_wrapper.label, obs_item_wrapper.obs_item["path"])
 
 def in_recent_play_queue(path):
     for element in last_obs_queue:
