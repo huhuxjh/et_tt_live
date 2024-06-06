@@ -41,7 +41,7 @@ urgent_query_queue = queue.Queue(maxsize=10)
 urgent_tts_queue = queue.Queue(maxsize=10)
 
 # 最近4个OBS视频不能重复
-last_obs_queue = deque(maxlen=2)
+last_obs_queue = deque(maxlen=4)
 
 # obs_queue = queue.Queue(maxsize=3)
 obs_queue = []
@@ -329,6 +329,7 @@ def play_audio(callback):
         play_wav_on_device(wav=wav, device=device)
         callback()
 
+
 def play_video(callback):
     global obs_queue
     print(f"try play_obs, obs_queue:{len(obs_queue)}")
@@ -339,8 +340,8 @@ def play_video(callback):
         obs_queue = obs_queue[1:]
     print(f"play_obs obs_item_wrapper:{obs_item_wrapper.obs_item['duration']}")
     if obs_wrapper:
-        print(str(time.time()) +"=========== play " + obs_item_wrapper.obs_item["path"])
-        return obs_wrapper.play_video(obs_item_wrapper.label, obs_item_wrapper.obs_item["path"],callback=callback)
+        print(str(time.time()) + "=========== play " + obs_item_wrapper.obs_item["path"])
+        return obs_wrapper.play_video(obs_item_wrapper.label, obs_item_wrapper.obs_item["path"], callback=callback)
     return False
 
 
@@ -401,8 +402,9 @@ def drive_video(wav, label):
             obs_queue.append(ObsItemWrapper(obs_item=suitable_item, label=label))
             print("put obs_queue: obs is not playing")
         else:
-            print("no suitable video, use default label video")
-            # drive_video(wav, "default")
+            print("no suitable video, use random video")
+            obs_queue.append(ObsItemWrapper(obs_item=random.choice(play_list), label=label))
+
 
 
 async def prepare(ref_speaker_name):
@@ -492,16 +494,17 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
     if audio_thread and audio_thread.is_alive():
         force_stop = True
 
+
 def play_wav_cycle():
     def worker():
         global live_running, force_stop
         while live_running or not force_stop:
             try:
-                a1,a2 = obs_wrapper.get_audio_status()
+                a1, a2 = obs_wrapper.get_audio_status()
                 if a2 == 0 or (a2 - a1) == 0:
                     play_audio(None)
 
-                v1,v2 = obs_wrapper.get_video_status()
+                v1, v2 = obs_wrapper.get_video_status()
                 if v2 == 0 or (v2 - v1) == 0:
                     play_video(None)
             except soundfile.LibsndfileError as ignore:
@@ -511,7 +514,6 @@ def play_wav_cycle():
     thread = threading.Thread(target=worker)
     thread.start()
     return thread
-
 
 #
 # end = False
