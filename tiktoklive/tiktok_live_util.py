@@ -65,6 +65,9 @@ async def list_prepare_tts_task():
         if os.path.exists(wav):
             val.wav = wav
             tts_queue.put(val)
+    # 结束协程
+    global prepare_tts_task
+    if prepare_tts_task: prepare_tts_task.cancel()
 
 
 async def check_comment():
@@ -209,7 +212,8 @@ async def llm_query_task():
         live_running = False
     # 结束协程
     global llm_task
-    llm_task.done()
+    print('llm_query_task===>', llm_task)
+    if llm_task: llm_task.cancel()
 
 
 async def llm_query(content_item):
@@ -242,7 +246,8 @@ async def create_tts_task(ref_speaker_name):
         await asyncio.sleep(1)
     # 结束协程
     global tts_task
-    tts_task.done()
+    print('create_tts_task===>', tts_task)
+    if tts_task: tts_task.cancel()
 
 
 async def create_tts(content_item, ref_speaker_name):
@@ -337,10 +342,13 @@ def drive_obs(wav, label):
 
 async def prepare(ref_speaker_name):
     print("live mode: prepare")
-    t5 = asyncio.create_task(llm_query_task())
-    t6 = asyncio.create_task(create_tts_task(ref_speaker_name))
-    ret = await asyncio.gather(t5, t6)
-    print("live mode: prepare", ret)
+    global llm_task, tts_task
+    llm_task = asyncio.create_task(llm_query_task())
+    tts_task = asyncio.create_task(create_tts_task(ref_speaker_name))
+    try:
+        await asyncio.gather(llm_task, tts_task)
+    except asyncio.CancelledError:
+        print("live mode: prepare")
 
 
 async def play_prepare(ref_speaker_name):
@@ -349,9 +357,12 @@ async def play_prepare(ref_speaker_name):
     # t2 = asyncio.create_task(social_task())
     # t3 = asyncio.create_task(broadcast_task())
     # t4 = asyncio.create_task(chat_task())
-    t5 = asyncio.create_task(list_prepare_tts_task())
-    ret = await asyncio.gather(t5)
-    print("live mode: play_prepare", ret)
+    global prepare_tts_task
+    prepare_tts_task = asyncio.create_task(list_prepare_tts_task())
+    try:
+        await asyncio.gather(prepare_tts_task)
+    except asyncio.CancelledError:
+        print("live mode: play_prepare")
 
 
 async def live(ref_speaker_name):
@@ -363,8 +374,11 @@ async def live(ref_speaker_name):
     global llm_task, tts_task
     llm_task = asyncio.create_task(llm_query_task())
     tts_task = asyncio.create_task(create_tts_task(ref_speaker_name))
-    ret = await asyncio.gather(llm_task, tts_task)
-    print("live mode: live end", ret)
+    try:
+        await asyncio.gather(llm_task, tts_task)
+    except asyncio.CancelledError:
+        print("live mode: live end")
+
 
 
 def is_prepare():
@@ -388,11 +402,11 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
     #     du = driver_utils.DriverUtils(driver)
     #     #启动协程
     #     asyncio.run(main())
-    global live_running
+    global live_running, force_stop
     live_running = True
+    force_stop = False
     print('is_prepare, is_play_prepare=', is_prepare(), ', ', is_play_prepare())
     thread = None
-    coroutine = None
     if is_prepare():
         asyncio.run(prepare(ref_speaker_name))
     elif is_play_prepare():
@@ -400,21 +414,22 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
             obs_wrapper = OBScriptManager(obs_port, local_video_dir)
             obs_wrapper.start()
         thread = play_wav_cycle()
-        coroutine = asyncio.run(play_prepare(ref_speaker_name))
+        asyncio.run(play_prepare(ref_speaker_name))
     else:
         if obs_port > 0:
             obs_wrapper = OBScriptManager(obs_port, local_video_dir)
             obs_wrapper.start()
         thread = play_wav_cycle()
-        coroutine = asyncio.run(live(ref_speaker_name))
-    print('coroutine===================>', coroutine)
-    print('thread======================>', thread)
+        asyncio.run(live(ref_speaker_name))
+    print('thread force stop', thread)
+    if thread and thread.is_alive():
+        force_stop = True
 
 
 def play_wav_cycle():
     def worker():
-        global live_running
-        while live_running or not tts_queue.empty():
+        global live_running, force_stop
+        while live_running or not force_stop:
             try:
                 play_audio()
             except soundfile.LibsndfileError as ignore:
