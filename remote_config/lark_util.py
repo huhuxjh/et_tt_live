@@ -1,3 +1,5 @@
+import os.path
+
 import lark_oapi as lark
 import json
 import requests
@@ -118,6 +120,24 @@ def product_product_scrip(template: Template) -> Script:
     script_items = template.produce_script()
     product = Script(context=template.context, sys_inst=template.sys_inst, role_play=template.role_play,
                      item_list=script_items)
+    return product
+
+
+def retrieve_script(config_id, sheet_id, src_range, reproduce=False):
+    from bean.product import Script
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.join(base_dir, f'script_{config_id}')
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
+    script_path = os.path.join(base_dir, f'script.json')
+    if not reproduce and os.path.exists(script_path):
+        product = Script.from_file(script_path)
+        # todo: 增加validation
+    else:
+        template = query_product_template(sheet_id, src_range)
+        product = product_product_scrip(template)
+        product.to_file(script_path)
+    # 返回结果
     return product
 
 

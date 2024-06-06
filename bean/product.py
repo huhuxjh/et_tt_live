@@ -1,3 +1,4 @@
+import json
 import random
 import re
 
@@ -15,22 +16,37 @@ class ScriptItem:
         self.index = idx
         return self
 
-    def dumps(self):
+    def dumps(self) -> dict:
         return {
             'index': self.index, 'text': self.text,
             'llm_infer': self.llm_infer, 'tts_type': self.tts_type,
             'vid_label': self.vid_label, 'wav': self.wav,
         }
 
+    def from_dict(dict_item: dict):
+        return ScriptItem(
+            index=dict_item['index'],
+            text=dict_item['text'],
+            llm_infer=dict_item['llm_infer'],
+            tts_type=dict_item['tts_type'],
+            vid_label=dict_item['vid_label'],
+            wav=dict_item['wav'],
+        )
+
 
 class Script:
-    def __init__(self, context, sys_inst, role_play, item_list: list[ScriptItem]):
+    def __init__(self, context, sys_inst, role_play, item_list: list[ScriptItem], role_play_prd=None):
         self.context = context
         self.sys_inst = sys_inst
         self.role_play = role_play
         self.item_list = item_list
         # 调整roleplay
-        self.role_play_prd = self._produce_roleplay_()
+        if role_play_prd:
+            self.role_play_prd = role_play_prd
+        else:
+            self.role_play_prd = self._produce_roleplay_()
+        # 记录缓存位置
+        self._config_path_ = None
 
     def _produce_roleplay_(self):
         role_play = '\n'.join([f'{val.index}.{val.text}' for idx, val in enumerate(self.item_list)])
@@ -43,6 +59,25 @@ class Script:
             'role_play': self.role_play, 'role_play_prd': self.role_play_prd,
             'item_list': [item.dumps() for item in self.item_list],
         }
+
+    def to_file(self, json_file):
+        with open(json_file, 'w', encoding='utf8', errors='ignore') as fd:
+            fd.write(json.dumps(self.dumps()))
+        self._config_path_ = json_file
+
+    def from_file(json_file: str):
+        with open(json_file, 'r', encoding='utf8', errors='ignore') as fd:
+            json_dict = json.loads(fd.read())
+        # rebuild
+        script = Script(
+            context=json_dict['context'],
+            sys_inst=json_dict['sys_inst'],
+            role_play=json_dict['role_play'],
+            item_list=[ScriptItem.from_dict(item) for item in json_dict['item_list']],
+            role_play_prd=json_dict['role_play_prd'],
+        )
+        script._config_path_ = json_file
+        return script
 
 
 class TemplateItem:
