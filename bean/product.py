@@ -1,6 +1,8 @@
 import json
+import os.path
 import random
 import re
+import shutil
 
 
 class Config:
@@ -91,6 +93,15 @@ class Script:
         )
         script._config_path_ = json_file
         return script
+
+    def commit(self):
+        audio_list = [item.wav for item in self.item_list if item.wav != '' and os.path.exists(item.wav)]
+        base_dir = os.path.dirname(self._config_path_)
+        for audio in audio_list:
+            name = os.path.basename(audio)
+            shutil.copy(audio, os.path.join(base_dir, name))
+        # 更新缓存文件
+        self.to_file(self._config_path_)
 
 
 class TemplateItem:

@@ -42,3 +42,5 @@ if __name__ == '__main__':
     scenes = lark_util.query_assist_script(config.assist_sheet, config.assist_range)
     # 启动main逻辑
     start(config.browser_id, scenes, product, config.ref_speaker, config.sound_device, obs_port, run_mode, config_id)
+    # 如果完成后, 更新缓存, 拷贝音频
+    product.commit()
