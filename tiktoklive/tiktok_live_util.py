@@ -321,7 +321,8 @@ def play_audio():
     device = device_list[device_index]
     if obs_wrapper:
         drive_obs(wav, label)
-    play_wav_on_device(wav=wav, device=device)
+    # play_wav_on_device(wav=wav, device=device)
+    obs_wrapper.play_audio(wav=wav, callback=None)
 
 def play_obs():
     print("play_obs")
@@ -359,10 +360,11 @@ def drive_obs(wav, label):
         if not in_recent_play_queue(path):
             available_list.append(item)
 
-    if obs_wrapper.is_playing:
+    if obs_wrapper.is_playing():
         # OBS还要播放多久
-        cur, obs_dur = obs_wrapper.get_play_status()
-        remain_time = obs_dur - cur
+        cur, obs_dur = obs_wrapper.get_video_status()
+        cur1, obs_dur1 = obs_wrapper.get_video_status()
+        remain_time = max(obs_dur - cur, obs_dur1 - cur1)
         
         if remain_time < 2: # 剩余小于2秒直接塞
             suitable_item = get_suitable_obs(wav_dur=wav_dur,obs_list=available_list)
