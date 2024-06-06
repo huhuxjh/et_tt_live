@@ -207,6 +207,7 @@ class Template:
         for key, val_list in self.item_group.items():
             script_item_list.extend(map(convert, val_list))
         # 更新脚本步骤信息
+        script_item_list = [item for item in script_item_list if item.text != '']
         script_item_list = [item.update(idx + 1) for idx, item in enumerate(script_item_list)]
         # 返回生成的脚本列表
         return script_item_list
