@@ -127,6 +127,7 @@ class Template:
             'order_urging': ['order_urging'],
             'bye': ['bye'],
         }
+        self._update_template_tag_group_()
         # welcome
         # for (指定)count 1000
         #     (判断有没有,0.5中概率,0-1) 随机welcome...n (去重)
@@ -136,9 +137,21 @@ class Template:
         #     (判断有没有,0.1小概率,0-1) 随机是否要插入chat...n (去重)
         #     (判断有没有,0.8大概率,0-1) 随机是否要插入order_urging...n (去重)
         # bye
-        self.script_config: list[str] = self.produce_config()
+        self.script_config: list[str] = self._produce_config_()
 
-    def produce_config(self, seed=1000) -> list[str]:
+    def _update_template_tag_group_(self):
+        key_pattern = [re.compile(key, re.IGNORECASE) for key, _ in self.template_tag_group.items()]
+        for key, _ in self.item_group.items():
+            for pattern in key_pattern:
+                match = pattern.match(key)
+                print(pattern, match)
+                if match:
+                    if key not in self.template_tag_group[match.group()]:
+                        self.template_tag_group[match.group()].append(key)
+        # 处理结束
+        print(self.template_tag_group)
+
+    def _produce_config_(self, seed=1000) -> list[str]:
         """
         根据规则生成本场脚本配置文件
         """
