@@ -363,8 +363,7 @@ def drive_obs(wav, label):
     if obs_wrapper.is_playing():
         # OBS还要播放多久
         cur, obs_dur = obs_wrapper.get_video_status()
-        cur1, obs_dur1 = obs_wrapper.get_video_status()
-        remain_time = max(obs_dur - cur, obs_dur1 - cur1)
+        remain_time = obs_dur - cur
         
         if remain_time < 2: # 剩余小于2秒直接塞
             suitable_item = get_suitable_obs(wav_dur=wav_dur,obs_list=available_list)
