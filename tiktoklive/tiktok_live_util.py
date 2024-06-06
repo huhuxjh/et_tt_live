@@ -8,6 +8,7 @@ import threading
 
 import soundfile
 from pydub import AudioSegment
+from collections import deque
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from obs.Auto_script_source_V3 import *
@@ -37,7 +38,14 @@ query_queue = queue.Queue(maxsize=2000)
 tts_queue = queue.Queue(maxsize=2000)
 urgent_query_queue = queue.Queue(maxsize=10)
 urgent_tts_queue = queue.Queue(maxsize=10)
+
+# 最近4个OBS视频不能重复
+last_obs_queue = deque(maxlen=4)
+
+obs_queue = queue.Queue(maxsize=3)
+
 obs_wrapper = None
+
 local_video_dir = "D:\\video_normal"
 
 enter_reply_list = [
@@ -290,7 +298,7 @@ async def create_tts(content_item, ref_speaker_name):
 
 def get_wav_dur(wav):
     sound = AudioSegment.from_wav(wav)
-    duration = sound.duration_seconds * 1000  # 音频时长（ms）
+    duration = sound.duration_seconds  # 音频时长（s）
     return duration
 
 
@@ -315,11 +323,61 @@ def play_audio():
     play_wav_on_device(wav=wav, device=device)
 
 
+def in_recent_play_queue(path):
+    for element in last_obs_queue:
+        if element == path:
+            return True
+    return False
+
+# 找可用的，与wav时长最接近的obs
+def get_suitable_obs(wav_dur, obs_list):
+    diff_time = 10000
+    suitable_item = None
+    for item in obs_list:
+        temp_diff = abs(item["duration"] - wav_dur)
+        if temp_diff < diff_time:
+            diff_time = temp_diff
+            suitable_item = item
+    return suitable_item
+
+
 def drive_obs(wav, label):
+    global last_label
     wav_dur = get_wav_dur(wav)
-    print(f"drive_obs:{label},{wav_dur}")
-    label_list = ["discount_now", "discount_in_live"]
-    obs_wrapper.play(random.choice(label_list))
+    print(f"drive_obs:{label}, {wav_dur}")
+    # test_label_list = ["discount_now", "discount_in_live"]
+
+    play_list = obs_wrapper.get_play_tag_list(label)
+    #把最近播放过的（最近4个）排除掉，得出一个当前可用的list:
+    available_list = []
+    for item in play_list:
+        path = item["path"]
+        if not in_recent_play_queue(path):
+            available_list.append(item)
+    
+
+    if obs_wrapper.is_playing:
+        # OBS还要播放多久
+        cur, obs_dur = obs_wrapper.get_play_status(last_label)
+        remain_time = obs_dur - cur
+        # todo:
+        # if remain_time < 2:
+            # wait to play the next obs
+
+        # else:
+            # play
+    else:
+        #当前没有在播放OBS:
+        suitable_item = get_suitable_obs(wav_dur=wav_dur,obs_list=available_list)
+        if suitable_item:
+            obs_wrapper.play(label, suitable_item["path"])
+            # 记住上一次播放的obs label
+            last_label = label
+        else:
+            # todo: 没有合适的怎么办？有兜底的吗，彭总。
+
+        
+
     # todo: drive the obs
     # 调用播放
     # obs_wrapper.play(label, None)
