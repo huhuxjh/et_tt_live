@@ -15,8 +15,11 @@ async def post_retry(url, headers, data):
     return session.post(url, headers=headers, json=data)
 
 
+HOST = 'http://127.0.0.1:9394'
+
+
 async def llm_async(query, role_play, context, inst_text, max_num_sentence, repetition_penalty):
-    url = "http://127.0.0.1:9393/llm/tr"
+    url = f"{HOST}/llm/tr"
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json"
@@ -35,7 +38,7 @@ async def llm_async(query, role_play, context, inst_text, max_num_sentence, repe
 
 
 async def tts_async(text, ref_name, out_name, spc_type):
-    url = "http://127.0.0.1:9393/tts/tr"
+    url = f"{HOST}/tts/tr"
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json"
