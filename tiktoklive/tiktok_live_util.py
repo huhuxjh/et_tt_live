@@ -40,8 +40,8 @@ tts_queue = queue.Queue(maxsize=2000)
 urgent_query_queue = queue.Queue(maxsize=10)
 urgent_tts_queue = queue.Queue(maxsize=10)
 
-# 最近4个OBS视频不能重复
-last_obs_queue = deque(maxlen=4)
+# 最近播放的OBS视频
+last_obs_queue = deque()
 
 # obs_queue = queue.Queue(maxsize=3)
 obs_queue = []
@@ -366,6 +366,12 @@ def get_suitable_obs(wav_dur, obs_list):
     return suitable_item
 
 
+def append_last_obs_queue(obs_item):
+    if len(last_obs_queue) >= 4:
+        last_obs_queue.popleft()
+    last_obs_queue.append(obs_item)
+
+
 def drive_video(wav, label):
     wav_dur = get_wav_dur(wav)
     print(f"drive_video:{label}, {wav_dur}")
@@ -388,6 +394,7 @@ def drive_video(wav, label):
             if suitable_item:
                 print("put obs_queue: remain_time < 2")
                 obs_queue.append(ObsItemWrapper(obs_item=suitable_item, label=label))
+                append_last_obs_queue(suitable_item)
         elif remain_time > wav_dur:  # obs剩余的播放时长比当前要播放的TTS还长的话，就什么都不做。
             print("remain_time > wav_dur ==>do nothing ")
         else:  # 基于当前TTS下次超出的时间去找一个合适的视频
@@ -395,6 +402,7 @@ def drive_video(wav, label):
             suitable_item = get_suitable_obs(wav_dur=fix_time, obs_list=available_list)
             if suitable_item:
                 obs_queue.append(ObsItemWrapper(obs_item=suitable_item, label=label))
+                append_last_obs_queue(suitable_item)
                 print("put obs_queue: obs is_playing")
 
     else:
@@ -402,11 +410,13 @@ def drive_video(wav, label):
         suitable_item = get_suitable_obs(wav_dur=wav_dur, obs_list=available_list)
         if suitable_item:
             obs_queue.append(ObsItemWrapper(obs_item=suitable_item, label=label))
+            append_last_obs_queue(suitable_item)
             print("put obs_queue: obs is not playing")
         else:
             print("no suitable video, use random video")
-            obs_queue.append(ObsItemWrapper(obs_item=random.choice(play_list), label=label))
-
+            random_item = random.choice(play_list)
+            obs_queue.append(ObsItemWrapper(obs_item=random_item, label=label))
+            append_last_obs_queue(random_item)
 
 async def prepare(ref_speaker_name):
     print("live mode: prepare")
