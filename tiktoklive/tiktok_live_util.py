@@ -48,7 +48,7 @@ obs_queue = []
 
 obs_wrapper = None
 
-local_video_dir = "D:\\video_normal"
+local_video_dir = "D:\\video_res"
 
 enter_reply_list = [
     'hello~',
@@ -71,7 +71,8 @@ follow_reply_list = [
 
 async def list_prepare_tts_task():
     for _, val in enumerate(product_script.item_list):
-        wav = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{val.index}_{device_index}.wav')
+        # wav = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{val.index}_{device_index}.wav')
+        wav = val.wav
         if os.path.exists(wav):
             val.wav = wav
             tts_queue.put(val)
@@ -367,7 +368,7 @@ def get_suitable_obs(wav_dur, obs_list):
 
 
 def append_last_obs_queue(obs_item):
-    if len(last_obs_queue) >= 4:
+    if len(last_obs_queue) >= 6:
         last_obs_queue.popleft()
     last_obs_queue.append(obs_item)
 
@@ -413,10 +414,12 @@ def drive_video(wav, label):
             append_last_obs_queue(suitable_item)
             print("put obs_queue: obs is not playing")
         else:
-            print("no suitable video, use random video")
-            random_item = random.choice(play_list)
-            obs_queue.append(ObsItemWrapper(obs_item=random_item, label=label))
-            append_last_obs_queue(random_item)
+            # if len(play_list) > 0:
+            #     print("no suitable video, use random video")
+            #     random_item = random.choice(play_list)
+            #     obs_queue.append(ObsItemWrapper(obs_item=random_item, label=label))
+            #     append_last_obs_queue(random_item)
+            print("play_list ==0")
 
 async def prepare(ref_speaker_name):
     print("live mode: prepare")
@@ -466,7 +469,7 @@ def is_play_prepare():
     return live_mode == "2"
 
 
-def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_port, mode, configId):
+def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_video_port,obs_audio_port, mode, configId):
     global obs_wrapper
     global du, script_scenes, product_script, device_index, live_mode, config_id
     script_scenes = scenes
@@ -488,22 +491,22 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_por
     if is_prepare():
         asyncio.run(prepare(ref_speaker_name))
     elif is_play_prepare():
-        if obs_port > 0:
-            obs_wrapper = OBScriptManager(obs_port, local_video_dir, True)
+        if obs_video_port > 0:
+            obs_wrapper = OBScriptManager(obs_video_port,obs_audio_port, local_video_dir)
             obs_wrapper.start()
             # video_thread = play_video_cycle()
         audio_thread = play_wav_cycle()
         asyncio.run(play_prepare(ref_speaker_name))
     else:
-        if obs_port > 0:
-            obs_wrapper = OBScriptManager(obs_port, local_video_dir, True)
+        if obs_video_port > 0:
+            obs_wrapper = OBScriptManager(obs_video_port,obs_audio_port, local_video_dir)
             obs_wrapper.start()
             # video_thread = play_video_cycle()
         audio_thread = play_wav_cycle()
         asyncio.run(live(ref_speaker_name))
     print('thread force stop', audio_thread)
-    if audio_thread and audio_thread.is_alive():
-        force_stop = True
+    # if audio_thread and audio_thread.is_alive():
+    #     force_stop = True
 
 
 def play_wav_cycle():
@@ -583,7 +586,7 @@ def play_wav_cycle():
 #     thread.start()
 #     return thread
 # from template_generator import ffmpeg as template_ffmpeg
-# for root, dirs, files in os.walk("D:\\video_normal"):
+# for root, dirs, files in os.walk("D:\\video_res"):
 #     for file in files:
 #         # 检查文件扩展名是否匹配
 #         if any(file.lower().endswith(ext) for ext in ['.mp4', '.avi', '.mov']):

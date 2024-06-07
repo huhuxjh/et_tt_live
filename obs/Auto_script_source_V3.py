@@ -158,10 +158,12 @@ class EventObserver:
         print("[OBS] closing!")
 
 class OBScriptManager :
-    def __init__(self, port, sub_tag_dir, add_filter=False):
-        self.port = port
+    def __init__(self, video_port, audio_port, sub_tag_dir, add_filter=False):
+        self.video_port = video_port
+        self.audio_port = audio_port
         self.maxCommandNum = 1
-        self._observer = EventObserver(add_filter)
+        self._video_observer = EventObserver(add_filter)
+        self._audio_observer = EventObserver(add_filter)
         self._isInitialized = False
         self._curPlayingVideo = ""
         self.tags = {}
@@ -197,7 +199,8 @@ class OBScriptManager :
         return
     
     def register_lisenter(self, fns: Union[Iterable, Callable]):
-        self._observer._callback.register(fns)
+        self._video_observer._callback.register(fns)
+        self._audio_observer._callback.register(fns)
     
     def get_play_tag_list(self, tag):
         if tag not in self.tags:
@@ -205,16 +208,22 @@ class OBScriptManager :
         return self.tags[tag]
     
     def get_video_status(self):
-        if len(self._curPlayingVideo) > 0:
-            resp = self._observer._request.get_media_input_status(self._curPlayingVideo)
-            if resp.media_state == 'OBS_MEDIA_STATE_PLAYING':
-                return resp.media_cursor / 1000.0, resp.media_duration / 1000.0
+        try:
+            if len(self._curPlayingVideo) > 0:
+                resp = self._video_observer._request.get_media_input_status(self._curPlayingVideo)
+                if resp.media_state == 'OBS_MEDIA_STATE_PLAYING':
+                    return resp.media_cursor / 1000.0, resp.media_duration / 1000.0
+        except:
+            pass
         return 0, 0
     
     def get_audio_status(self):
-        resp = self._observer._request.get_media_input_status(OBS_MEDIA_WAV_NAME)
-        if resp.media_state == 'OBS_MEDIA_STATE_PLAYING':
-            return resp.media_cursor / 1000.0, resp.media_duration / 1000.0
+        try:
+            resp = self._audio_observer._request.get_media_input_status(OBS_MEDIA_WAV_NAME)
+            if resp.media_state == 'OBS_MEDIA_STATE_PLAYING':
+                return resp.media_cursor / 1000.0, resp.media_duration / 1000.0
+        except:
+            pass
         return 0, 0
     
     def play_video(self, tag, mp4=None, callback=None):
@@ -235,42 +244,48 @@ class OBScriptManager :
             else:
                 play_mp4 = random.choice(has_files)
             play_mp4["played"] = True
-        if self._observer.has_source(OBS_MEDIA_VIDEO_NAME) == False:
-            self._observer.create_input(OBS_MEDIA_VIDEO_NAME, play_mp4["path"])
+        if self._video_observer.has_source(OBS_MEDIA_VIDEO_NAME) == False:
+            self._video_observer.create_input(OBS_MEDIA_VIDEO_NAME, play_mp4["path"])
         else:
-            self._observer.update_input(OBS_MEDIA_VIDEO_NAME, play_mp4["path"])
-        with self._observer._lock:
+            self._video_observer.update_input(OBS_MEDIA_VIDEO_NAME, play_mp4["path"])
+        with self._video_observer._lock:
             self._curPlayingVideo = OBS_MEDIA_VIDEO_NAME
-            self._observer.play_video(OBS_MEDIA_VIDEO_NAME, play_mp4, callback)
+            self._video_observer.play_video(OBS_MEDIA_VIDEO_NAME, play_mp4, callback)
             return True
     
     def play_audio(self, wav, callback=None):
-        with self._observer._lock:
-            self._observer.play_audio(wav, callback)
+        with self._audio_observer._lock:
+            self._audio_observer.play_audio(wav, callback)
             return True
 
     def start(self):
         if self._isInitialized == False:
             ekwargs = {
-                "port": self.port,
+                "port": self.video_port,
                 "subs" :Subs.MEDIAINPUTS | Subs.SCENES
             }
-            self._observer.start(**ekwargs)
+            self._video_observer.start(**ekwargs)
+            ekwargs1 = {
+                "port": self.audio_port,
+                "subs" :Subs.MEDIAINPUTS | Subs.SCENES
+            }
+            self._audio_observer.start(**ekwargs1)
             self._isInitialized = True
 
     def stop(self):
         if self._isInitialized:
-            self._observer.stop()
+            self._video_observer.stop()
+            self._audio_observer.stop()
             self._isInitialized = False
 
     def is_playing(self) :
-        return len(self._observer._playingSources) > 0
+        return len(self._video_observer._playingSources) > 0
     
 if __name__ == "__main__":
-    obs_port = 4455 #obs 工具-》WebSocket服务器设置-》服务端端口，默认是4455，本地不开启身份认证
+    #obs 工具-》WebSocket服务器设置-》服务端端口，默认是4455，本地不开启身份认证
     # 脚本启动前，应把本地OBS的所有scene和source都配置好
     # 脚本目前只负责scene和source的切换和控制
-    scriptMgr = OBScriptManager(obs_port, "D:\\video_normal", True)
+    scriptMgr = OBScriptManager(4455, 4456, "D:\\video_normal", True)
     scriptMgr.start()
     print(scriptMgr.get_play_tag_list("discount_now"))
     idx = 0
