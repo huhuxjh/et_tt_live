@@ -47,7 +47,7 @@ async def tts_async(text, ref_name, out_name, spc_type):
     # "ref_name": ref_name      # 指定音色
     # 以下是chatTTS参数
     # "spc_type": "chat_tts"
-    # "manual_seed": 2000       # 指定音色
+    # "manual_seed": 0       # 指定音色: 147,283,304,409,494,655女，103,266,327,410,417,715男
     # "skip_refine_text": False # True表示自行插入语气
     data = {
         "text": text,
