@@ -123,10 +123,10 @@ def query_assist_script(sheet_id, src_range):
     return scenes
 
 
-def obtain_safety(text):
+def obtain_safety(text, skip_rep=False):
     if isinstance(text, list):
         text = ''.join([item['text'] for item in text])
-    if isinstance(text, str):
+    if isinstance(text, str) and not skip_rep:
         text = text.replace('\n', '')
     return text
 
@@ -134,17 +134,17 @@ def obtain_safety(text):
 def query_product_template(sheet_id, src_range, seed) -> Template:
     datas = query_sheet_range(sheet_id, src_range)
     role_play = obtain_safety(datas.pop(0)[1])
-    product_info = obtain_safety(datas.pop(0)[1])
+    product_info = obtain_safety(datas.pop(0)[1], True)
     sys_inst = obtain_safety(datas.pop(0)[1])
     item_list = []
     for idx, val in enumerate(datas):
         template_tag = obtain_safety(val[0])
         text = obtain_safety(val[1])
-        llm_infer = obtain_safety(val[2])
+        keep_ratio = obtain_safety(val[2])
         tts_type = obtain_safety(val[3])
         vid_label = obtain_safety(val[4])
         template_item = TemplateItem(template_tag=template_tag, text=text,
-                                     llm_infer=llm_infer, tts_type=tts_type, vid_label=vid_label)
+                                     keep_ratio=keep_ratio, tts_type=tts_type, vid_label=vid_label)
         item_list.append(template_item)
     # 模板脚本分组
     item_group: dict[str, list] = {}

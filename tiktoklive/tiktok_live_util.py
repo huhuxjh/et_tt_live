@@ -232,11 +232,11 @@ async def llm_query(content_item):
     sys_inst = product_script.sys_inst
     role_play = product_script.role_play
     tts_directly = content_item.llm_infer == 0
-    # with timer('qa-llama_v3'):
-    if tts_directly:
-        an = query
-    else:
-        an = await llm_async(query, role_play, context, sys_inst, 3, 1.05)
+    with timer('qa-llama_v3'):
+        if tts_directly:
+            an = query
+        else:
+            an = await llm_async(query, role_play, context, sys_inst, 3, 1.05)
     # 重新打包
     new_content_item = content_item.copy(text=an)
     query_queue.put(new_content_item)
@@ -296,6 +296,8 @@ async def create_tts(content_item, ref_speaker_name):
         content_item.wav = out
         # wav 入队
         tts_queue.put(content_item)
+    # feed back到product_script
+    product_script.update_script(content_item)
 
 
 def get_wav_dur(wav):

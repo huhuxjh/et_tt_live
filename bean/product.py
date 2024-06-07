@@ -23,7 +23,7 @@ class ScriptItem:
     def __init__(self, index, text, llm_infer, tts_type, vid_label, wav=''):
         self.index = index
         self.text = text if text else ''
-        self.llm_infer = llm_infer if llm_infer else 1
+        self.llm_infer = llm_infer if llm_infer else 0
         self.tts_type = tts_type if tts_type else 'ov_v2'
         self.vid_label = vid_label if vid_label else ''
         self.wav = wav if wav else ''
@@ -106,6 +106,11 @@ class Script:
         script._config_path_ = json_file
         return script
 
+    def update_script(self, item: ScriptItem):
+        my_item = self.item_list[item.index-1]
+        if my_item.index == item.index:
+            my_item.wav = item.wav
+
     def commit(self):
         audio_list = [item.wav for item in self.item_list if item.wav != '' and os.path.exists(item.wav)]
         base_dir = os.path.dirname(self._config_path_)
@@ -117,10 +122,10 @@ class Script:
 
 
 class TemplateItem:
-    def __init__(self, template_tag, text, llm_infer, tts_type, vid_label):
+    def __init__(self, template_tag, text, keep_ratio, tts_type, vid_label):
         self.template_tag = template_tag if template_tag else ''
         self.text = text if text else ''
-        self.llm_infer = llm_infer if llm_infer else 1
+        self.keep_ratio = keep_ratio if keep_ratio else 1
         self.tts_type = tts_type if tts_type else 'ov_v2'
         self.vid_label = vid_label if vid_label else ''
 
@@ -172,7 +177,7 @@ class Template:
             # welcome
             if len(config_tas_list) <= 0 or random.random() <= 0.5:
                 config_tas_list.append(random.choice(self.template_tag_group['welcome']))
-            # selling_point
+            # selling
             selling_sample = random.sample(self.template_tag_group['selling'], 3)
             config_tas_list.append(selling_sample[0])
             if random.random() <= 0.4:
@@ -182,7 +187,7 @@ class Template:
             # chat
             if random.random() <= 0.1:
                 config_tas_list.append(random.choice(self.template_tag_group['chat']))
-            # order_urging
+            # order
             if random.random() <= 0.8:
                 config_tas_list.append(random.choice(self.template_tag_group['order']))
         # bye
@@ -214,14 +219,14 @@ class Template:
 
     def convert_script(template_item: TemplateItem):
         # 概率控制是否llm推理
-        if template_item.llm_infer <= 0:
-            llm_infer = 0
-        elif template_item.llm_infer >= 1:
-            llm_infer = 0
+        if template_item.keep_ratio <= 0:
+            enable_llm_infer = 1
+        elif template_item.keep_ratio >= 1:
+            enable_llm_infer = 0
         else:
-            llm_infer = 0 if random.random() < template_item.llm_infer else 1
+            enable_llm_infer = 0 if random.random() < template_item.keep_ratio else 1
         # 转换script
-        script_item = ScriptItem(index=0, text=template_item.text, llm_infer=llm_infer,
+        script_item = ScriptItem(index=0, text=template_item.text, llm_infer=enable_llm_infer,
                                  tts_type=template_item.tts_type, vid_label=template_item.vid_label)
         # 返回
         return script_item
