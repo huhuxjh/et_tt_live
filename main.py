@@ -10,7 +10,7 @@ def start(browser_id, scenes, product, ref_speaker_name, device_id, obs_port, mo
 
 if __name__ == '__main__':
     config_id = "okL6Yo"
-    config_src_range = 'B1:B9'
+    config_src_range = 'B1:B10'
     obs_port = 4455
     # 0: live 实时生成
     # 1: prepare 直播前准备 
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     print(f"browser: {config.browser_id},\nproduct_sheet: {config.product_sheet},product_range:{config.product_range},"
           f"\nassist_sheet: {config.assist_sheet},assist_range:{config.assist_range}")
     # 获取商品脚本
-    product = lark_util.retrieve_script(config_id, config.product_sheet, config.product_range, reproduce)
+    product = lark_util.retrieve_script(config_id, config.product_sheet, config.product_range, config.seed, reproduce)
     # 获取助播脚本
     scenes = lark_util.query_assist_script(config.assist_sheet, config.assist_range)
     # 启动main逻辑

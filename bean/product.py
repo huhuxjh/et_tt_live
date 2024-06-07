@@ -7,7 +7,7 @@ import shutil
 
 class Config:
     def __init__(self, room_name, browser_id, product_sheet, product_range,
-                 assist_sheet, assist_range, ref_speaker, sound_device):
+                 assist_sheet, assist_range, ref_speaker, sound_device, seed):
         self.room_name = room_name
         self.browser_id = browser_id
         self.product_sheet = product_sheet
@@ -16,6 +16,7 @@ class Config:
         self.assist_range = assist_range
         self.ref_speaker = ref_speaker
         self.sound_device = sound_device
+        self.seed = seed
 
 
 class ScriptItem:
@@ -125,11 +126,12 @@ class TemplateItem:
 
 
 class Template:
-    def __init__(self, context, sys_inst, role_play, item_group: dict[str, list[TemplateItem]]):
+    def __init__(self, context, sys_inst, role_play, item_group: dict[str, list[TemplateItem]], seed):
         self.context = context
         self.sys_inst = sys_inst
         self.role_play = role_play
         self.item_group = item_group
+        self.seed = seed
         # todo: 从网络更新配置
         self.template_tag_group = {
             'welcome': ['welcome'],
@@ -148,7 +150,7 @@ class Template:
         #     (判断有没有,0.1小概率,0-1) 随机是否要插入chat...n (去重)
         #     (判断有没有,0.8大概率,0-1) 随机是否要插入order_urging...n (去重)
         # bye
-        self.script_config: list[str] = self._produce_config_(seed=5)
+        self.script_config: list[str] = self._produce_config_(seed=self.seed)
 
     def _update_template_tag_group_(self):
         key_pattern = [re.compile(key, re.IGNORECASE) for key, _ in self.template_tag_group.items()]

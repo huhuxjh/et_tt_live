@@ -98,6 +98,8 @@ def retrieve_config(sheet_id, src_range):
     # 获取播放设备id
     sound_device = data_sheet[8][0]
     # device_id = 1
+    seed = data_sheet[9][0]
+    # seed = 5
     return Config(
         room_name=room_name,
         browser_id=browser_id,
@@ -107,6 +109,7 @@ def retrieve_config(sheet_id, src_range):
         assist_range=assist_range,
         ref_speaker=ref_speaker,
         sound_device=sound_device,
+        seed=seed,
     )
 
 
@@ -128,7 +131,7 @@ def obtain_safety(text):
     return text
 
 
-def query_product_template(sheet_id, src_range) -> Template:
+def query_product_template(sheet_id, src_range, seed) -> Template:
     datas = query_sheet_range(sheet_id, src_range)
     role_play = obtain_safety(datas.pop(0)[1])
     product_info = obtain_safety(datas.pop(0)[1])
@@ -152,7 +155,7 @@ def query_product_template(sheet_id, src_range) -> Template:
             item_group[item.template_tag] = [item]
     # 生成模板实例
     template = Template(context=product_info, sys_inst=sys_inst, role_play=role_play,
-                        item_group=item_group)
+                        item_group=item_group, seed=seed)
     return template
 
 
@@ -164,7 +167,7 @@ def product_product_scrip(template: Template) -> Script:
     return product
 
 
-def retrieve_script(config_id, sheet_id, src_range, reproduce=False):
+def retrieve_script(config_id, sheet_id, src_range, seed=5, reproduce=False):
     """
     reproduce: True强制删除缓存, False使用缓存
     """
@@ -183,7 +186,7 @@ def retrieve_script(config_id, sheet_id, src_range, reproduce=False):
             shutil.rmtree(base_dir)
             os.makedirs(base_dir)
         # 重新生成
-        template = query_product_template(sheet_id, src_range)
+        template = query_product_template(sheet_id, src_range, seed)
         product = product_product_scrip(template)
         product.to_file(script_path)
     # 返回结果
