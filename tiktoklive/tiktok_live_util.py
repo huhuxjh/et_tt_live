@@ -297,7 +297,7 @@ async def create_tts(content_item, ref_speaker_name):
         # wav 入队
         tts_queue.put(content_item)
     # feed back到product_script
-    product_script.update_script(content_item)
+    product_script.update_script_item(content_item)
 
 
 def get_wav_dur(wav):

@@ -106,7 +106,7 @@ class Script:
         script._config_path_ = json_file
         return script
 
-    def update_script(self, item: ScriptItem):
+    def update_script_item(self, item: ScriptItem):
         my_item = self.item_list[item.index-1]
         if my_item.index == item.index:
             my_item.wav = item.wav
