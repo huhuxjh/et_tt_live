@@ -48,6 +48,17 @@ class ScriptItem:
             wav=dict_item['wav'],
         )
 
+    def copy(self, **kwargs):
+        script = ScriptItem(
+            index=kwargs['index'] if 'index' in kwargs else self.index,
+            text=kwargs['text'] if 'text' in kwargs else self.text,
+            llm_infer=kwargs['llm_infer'] if 'llm_infer' in kwargs else self.llm_infer,
+            tts_type=kwargs['tts_type'] if 'tts_type' in kwargs else self.tts_type,
+            vid_label=kwargs['vid_label'] if 'vid_label' in kwargs else self.vid_label,
+            wav=kwargs['wav'] if 'wav' in kwargs else self.wav,
+        )
+        return script
+
 
 class Script:
     def __init__(self, context, sys_inst, role_play, item_list: list[ScriptItem], role_play_prd=None):
@@ -122,9 +133,9 @@ class Template:
         # todo: 从网络更新配置
         self.template_tag_group = {
             'welcome': ['welcome'],
-            'selling_point': ['selling_point_1', 'selling_point_2', 'selling_point_3', 'selling_point_4'],
+            'selling': ['selling_point_1', 'selling_point_2', 'selling_point_3', 'selling_point_4'],
             'chat': ['chat_1', 'chat_2'],
-            'order_urging': ['order_urging'],
+            'order': ['order_urging'],
             'bye': ['bye'],
         }
         self._update_template_tag_group_()
@@ -160,7 +171,7 @@ class Template:
             if len(config_tas_list) <= 0 or random.random() <= 0.5:
                 config_tas_list.append(random.choice(self.template_tag_group['welcome']))
             # selling_point
-            selling_sample = random.sample(self.template_tag_group['selling_point'], 3)
+            selling_sample = random.sample(self.template_tag_group['selling'], 3)
             config_tas_list.append(selling_sample[0])
             if random.random() <= 0.4:
                 config_tas_list.append(selling_sample[1])
@@ -171,21 +182,16 @@ class Template:
                 config_tas_list.append(random.choice(self.template_tag_group['chat']))
             # order_urging
             if random.random() <= 0.8:
-                config_tas_list.append(random.choice(self.template_tag_group['order_urging']))
+                config_tas_list.append(random.choice(self.template_tag_group['order']))
         # bye
         config_tas_list.append(random.choice(self.template_tag_group['bye']))
         # 返回config
         return config_tas_list
 
-    def produce_script(self) -> list[ScriptItem]:
+    def produce_script_config(self) -> list[ScriptItem]:
         """
         根据配置生成脚本
         """
-        def convert(template_item: TemplateItem):
-            template_item = ScriptItem(index=0, text=template_item.text, llm_infer=template_item.llm_infer,
-                                       tts_type=template_item.tts_type, vid_label=template_item.vid_label)
-            return template_item
-
         script_item_list = []
         # 根据配置生成script列表
         pattern = re.compile(r'\[(\d+)\]')
@@ -198,30 +204,38 @@ class Template:
                 choice_group = self.item_group[choice_tag]
                 choice_piece = min(choice_piece, len(choice_group))
                 choice_list = random.sample(choice_group, choice_piece)
-                script_item_list.extend(map(convert, choice_list))
+                script_item_list.extend(map(Template.convert_script, choice_list))
             else:
                 print(f'tag {choice_tag} is not in template list')
-        # 更新脚本步骤信息
-        script_item_list = [item for item in script_item_list if item.text and item.text != '']
-        script_item_list = [item.update(idx+1) for idx, item in enumerate(script_item_list)]
         # 返回生成的脚本列表
-        return script_item_list
+        return Template.post_product(script_item_list)
+
+    def convert_script(template_item: TemplateItem):
+        # 概率控制是否llm推理
+        if template_item.llm_infer <= 0:
+            llm_infer = 0
+        elif template_item.llm_infer >= 1:
+            llm_infer = 0
+        else:
+            llm_infer = 0 if random.random() < template_item.llm_infer else 1
+        # 转换script
+        script_item = ScriptItem(index=0, text=template_item.text, llm_infer=llm_infer,
+                                 tts_type=template_item.tts_type, vid_label=template_item.vid_label)
+        # 返回
+        return script_item
+
+    def post_product(script_item_list):
+        new_item_list = [item for item in script_item_list if item.text and item.text != '']
+        new_item_list = [item.update(idx + 1) for idx, item in enumerate(new_item_list)]
+        return new_item_list
 
     def produce_script_all(self) -> list[ScriptItem]:
         """
         用于生产全部脚本tts内容
         """
-        def convert(template_item: TemplateItem):
-            template_item = ScriptItem(index=0, text=template_item.text, llm_infer=template_item.llm_infer,
-                                       tts_type=template_item.tts_type, vid_label=template_item.vid_label)
-            return template_item
-
         script_item_list = []
         for key, val_list in self.item_group.items():
-            script_item_list.extend(map(convert, val_list))
-        # 更新脚本步骤信息
-        script_item_list = [item for item in script_item_list if item.text and item.text != '']
-        script_item_list = [item.update(idx + 1) for idx, item in enumerate(script_item_list)]
+            script_item_list.extend(map(Template.convert_script, val_list))
         # 返回生成的脚本列表
-        return script_item_list
+        return Template.post_product(script_item_list)
 

@@ -227,18 +227,18 @@ async def llm_query_task():
 
 
 async def llm_query(content_item):
-    query = f'go to step {content_item.index}'
+    query = content_item.text
     context = product_script.context
     sys_inst = product_script.sys_inst
     role_play = product_script.role_play
-    keep = content_item.llm_infer
+    tts_directly = content_item.llm_infer == 0
     # with timer('qa-llama_v3'):
-    if keep == 1:
-        an = content_item.text.replace('\n', ' ')
+    if tts_directly:
+        an = query
     else:
         an = await llm_async(query, role_play, context, sys_inst, 3, 1.05)
-    new_content_item = ScriptItem(index=content_item.index, text=an, llm_infer=content_item.llm_infer,
-                                  tts_type=content_item.tts_type, vid_label=content_item.vid_label)
+    # 重新打包
+    new_content_item = content_item.copy(text=an)
     query_queue.put(new_content_item)
     print(f"query_queue put size:{query_queue.qsize()}")
     await asyncio.sleep(1)
@@ -327,7 +327,7 @@ def play_audio(callback):
         obs_wrapper.play_audio(wav=wav, callback=callback)
     else:
         play_wav_on_device(wav=wav, device=device)
-        callback()
+        if callback: callback()
 
 
 def play_video(callback):
@@ -404,7 +404,6 @@ def drive_video(wav, label):
         else:
             print("no suitable video, use random video")
             obs_queue.append(ObsItemWrapper(obs_item=random.choice(play_list), label=label))
-
 
 
 async def prepare(ref_speaker_name):
@@ -500,13 +499,16 @@ def play_wav_cycle():
         global live_running, force_stop
         while live_running or not force_stop:
             try:
-                a1, a2 = obs_wrapper.get_audio_status()
-                if a2 == 0 or (a2 - a1) == 0:
-                    play_audio(None)
+                if obs_wrapper:
+                    a1, a2 = obs_wrapper.get_audio_status()
+                    if a2 == 0 or (a2 - a1) == 0:
+                        play_audio(None)
 
-                v1, v2 = obs_wrapper.get_video_status()
-                if v2 == 0 or (v2 - v1) == 0:
-                    play_video(None)
+                    v1, v2 = obs_wrapper.get_video_status()
+                    if v2 == 0 or (v2 - v1) == 0:
+                        play_video(None)
+                else:
+                    play_audio(None)
             except soundfile.LibsndfileError as ignore:
                 print(ignore)
             time.sleep(0.1)

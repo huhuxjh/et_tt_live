@@ -120,24 +120,26 @@ def query_assist_script(sheet_id, src_range):
     return scenes
 
 
-def to_text_safety(text):
+def obtain_safety(text):
     if isinstance(text, list):
         text = ''.join([item['text'] for item in text])
+    if isinstance(text, str):
+        text = text.replace('\n', '')
     return text
 
 
 def query_product_template(sheet_id, src_range) -> Template:
     datas = query_sheet_range(sheet_id, src_range)
-    role_play = datas.pop(0)[1]
-    product_info = datas.pop(0)[1]
-    sys_inst = datas.pop(0)[1]
+    role_play = obtain_safety(datas.pop(0)[1])
+    product_info = obtain_safety(datas.pop(0)[1])
+    sys_inst = obtain_safety(datas.pop(0)[1])
     item_list = []
     for idx, val in enumerate(datas):
-        template_tag = to_text_safety(val[0])
-        text = to_text_safety(val[1])
-        llm_infer = to_text_safety(val[2])
-        tts_type = to_text_safety(val[3])
-        vid_label = to_text_safety(val[4])
+        template_tag = obtain_safety(val[0])
+        text = obtain_safety(val[1])
+        llm_infer = obtain_safety(val[2])
+        tts_type = obtain_safety(val[3])
+        vid_label = obtain_safety(val[4])
         template_item = TemplateItem(template_tag=template_tag, text=text,
                                      llm_infer=llm_infer, tts_type=tts_type, vid_label=vid_label)
         item_list.append(template_item)
@@ -155,7 +157,7 @@ def query_product_template(sheet_id, src_range) -> Template:
 
 
 def product_product_scrip(template: Template) -> Script:
-    script_items = template.produce_script()
+    script_items = template.produce_script_config()
     # script_items = template.produce_script_all()
     product = Script(context=template.context, sys_inst=template.sys_inst, role_play=template.role_play,
                      item_list=script_items)
