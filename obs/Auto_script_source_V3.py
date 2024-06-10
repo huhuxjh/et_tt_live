@@ -17,8 +17,8 @@ OBS_MEDIA_WAV_NAME = "wav"
 OBS_MEDIA_VIDEO_NAME = "video"
 
 OBS_MEDIA_VIDEO_EFFECT_KIND = "filter-custom"
-OBS_MEDIA_VIDEO_EFFECT_DURATION = "duration"
-OBS_MEDIA_VIDEO_EFFECT_TIME = "iTime"
+OBS_MEDIA_VIDEO_EFFECT_1 = "ZoomIn"
+OBS_MEDIA_VIDEO_EFFECT_2 = "ZoomOutIn"
 class EventObserver:
     def __init__(self, effect_dir, add_filter):
         self._control_layers = []
@@ -112,7 +112,8 @@ class EventObserver:
                 if os.path.isfile(os.path.join(self._effect_dir, effect)) and os.path.join(self._effect_dir, effect).lower().endswith('.effect'):
                     name = Path(effect).stem
                     self._request.create_source_filter(key, name, OBS_MEDIA_VIDEO_EFFECT_KIND, {
-                        'effect_path': os.path.join(self._effect_dir, effect)
+                        'effect_path': os.path.join(self._effect_dir, effect),
+                        "iTime" : 999.0
                     })
                     self._effects.append(name)
         self._sceneLayers = self._request.get_scene_item_list(self._curScene).scene_items
@@ -124,14 +125,10 @@ class EventObserver:
             "local_file": mp4,
             "looping": False
         }, True)
-        
+
     def play_video(self, key, source_config, video_callback):
         self.video_callback = video_callback
         self._playingSources.add(self._curScene + "_" + key)
-        # for effect in self._effects:
-        #     self._request.set_source_filter_settings(key, effect, {
-        #         OBS_MEDIA_VIDEO_EFFECT_TIME : 0.0
-        #     }, True)
         for item in self._sceneLayers:
             if item['sourceName'] == key:
                 trans = {}
@@ -175,7 +172,7 @@ class OBScriptManager :
     # video_port ： obs 视频端口
     # audio_port ： obs 音频端口
     # sub_tag_dir ： 要播放的视频标签的路径
-    # effect_dir ： 切换视频时的入场动画的资源目录
+    # effect_dir ： 切换视频时的入场动画的资源目录, 初次加载时需要打开obs，并在[工具]-》[脚本]-》加载 CustomShaders.lua,否则obs无法创建OBS_MEDIA_VIDEO_EFFECT_KIND类型的effect
     # add_filter ： 是否添加绿幕抠图滤镜
     def __init__(self, video_port, audio_port, sub_tag_dir, effect_dir = None, add_filter=False):
         self.video_port = video_port
@@ -239,6 +236,28 @@ class OBScriptManager :
         except:
             pass
         return 0, 0
+    
+    # 开始录制输出的obs，目前音频的obs即是最终的输出obs
+    def startRecord(self):
+        self._audio_observer._request.start_record()
+    # 结束录制输出的obs
+    # 返回值是录制完的视频的保存路径
+    def stopRecord(self):
+        response = self._audio_observer._request.stop_record()
+        if response is not None and response.output_path is not None:
+            return response.output_path
+        return ""
+
+    # effect ：动画枚举名称
+    #          OBS_MEDIA_VIDEO_EFFECT_1 缩小动画
+    #          OBS_MEDIA_VIDEO_EFFECT_2 放大-》缩小动画
+    # duration : 动画时长(秒为单位)
+    def play_effect(self, effect, duration):
+        if effect in self._video_observer._effects:
+            self._video_observer._request.set_source_filter_settings(self._curPlayingVideo, effect, {
+                "duration" : duration,
+                "iTime" : 0.0
+            }, True)
     
     def play_video(self, tag, mp4=None, callback=None):
         print("[OBS-Control] play tag "+ tag)
@@ -326,6 +345,7 @@ if __name__ == "__main__":
         # print("======================= audio " + wav)
         print("======================= video " + tag)
         scriptMgr.play_video(tag, None, video_callback)
+        scriptMgr.play_effect(OBS_MEDIA_VIDEO_EFFECT_2, 4.0)
         # scriptMgr.play_audio(wav, audio_callback)
         time.sleep(2)
         # v1, v2 = scriptMgr.get_audio_status()

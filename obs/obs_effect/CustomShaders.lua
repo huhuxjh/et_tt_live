@@ -268,7 +268,7 @@ function load_filter(filter, settings, reload)
       filter.params[k] = obs.gs_effect_get_param_by_name(filter.effect, k)
    end
    obs.obs_leave_graphics()
-
+   
    if reload then
       obs.obs_source_update(filter.context, filter.settings)
       obs.obs_source_update_properties(filter.context)
@@ -298,10 +298,10 @@ end
 function source_def.update(filter, settings)
    local k, v, value
    filter.effect_path = obs.obs_data_get_string(settings, 'effect_path')
-   -- time = obs.obs_data_get_double(settings, 'iTime')
-   -- if time ~= nil then
-   --    filter.iTime = time
-   -- end
+   time = obs.obs_data_get_double(settings, 'iTime')
+   if time ~= nil then
+      filter.iTime = time
+   end
    for k, v in pairs(filter.pragmas) do
       if v.order ~= nil then
          value = cs.get_property[v.type](settings, k)
@@ -391,10 +391,11 @@ function source_def.video_tick(filter, seconds)
    local parent = obs.obs_filter_get_parent(filter.context)
    filter.width = obs.obs_source_get_base_width(parent)
    filter.height = obs.obs_source_get_base_height(parent)
-   curTimestamp =  obs.obs_source_media_get_time(parent) / 1000.0
-   if curTimestamp > 0 then
-      filter.iTime = curTimestamp
-   end
+   -- curTimestamp =  obs.obs_source_media_get_time(parent) / 1000.0
+   -- if curTimestamp > 0 then
+   --    filter.iTime = curTimestamp
+   -- end
+   filter.iTime = filter.iTime + seconds
    -- print(string.format("Custom shader video_tick : %0.2f s\n", filter.iTime))
    obs.vec2_set(filter.iResolution, filter.width, filter.height)
 

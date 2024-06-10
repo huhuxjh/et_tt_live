@@ -2,23 +2,15 @@
 #pragma duration 0.1, 32, 0.1
 
 uniform float scale = 0.5;
-uniform float duration = 2.0;
+uniform float duration = 3.0;
 sampler_state def_sampler {
 	Filter   = Linear;
 	AddressU = Repeat;
 	AddressV = Repeat;
 };
-
-float easeInOutQuint(float t) 
-{ 
-	return 2.0 * t - t * t; 
-}
-
 float4 mainImage(VertData v_in) : TARGET
 {
 	float progress = clamp(iTime / duration, 0.0, 1.0);
-	progress = easeInOutQuint(progress);
-	float curScale = lerp(scale, 1.0, progress);
+	float curScale = lerp(1.0, scale, sin(progress * 3.1415926));
 	return image.Sample(def_sampler, (v_in.uv - float2(0.5,0.5)) * float2(curScale, curScale) + float2(0.5,0.5));
-	//return float4(v_in.u, v_in.v, 0.0, 1.0);
 }
