@@ -89,7 +89,7 @@ function script_load(settings)
 end
 
 function script_description()
-   return [[<center><h2>Custom shaders 0.9</h2></center>
+   return [[<center><h2>Custom shaders 1.2</h2></center>
    <p>This Lua script provides a filter that applies <em>OBS effects</em> to any image source.</p><b>Shade away!</b><p>--<br>Paulo Soares</p>]]
 end
 
@@ -298,6 +298,10 @@ end
 function source_def.update(filter, settings)
    local k, v, value
    filter.effect_path = obs.obs_data_get_string(settings, 'effect_path')
+   -- time = obs.obs_data_get_double(settings, 'iTime')
+   -- if time ~= nil then
+   --    filter.iTime = time
+   -- end
    for k, v in pairs(filter.pragmas) do
       if v.order ~= nil then
          value = cs.get_property[v.type](settings, k)
@@ -355,7 +359,7 @@ function source_def.create(settings, source)
    filter.context = source
    filter.effect_path = obs.obs_data_get_string(settings, 'effect_path')
    filter = create_filter(filter)
-   load_filter(filter, settings, false)
+   load_filter(filter, settings, true)
    return filter
 end
 
@@ -387,10 +391,14 @@ function source_def.video_tick(filter, seconds)
    local parent = obs.obs_filter_get_parent(filter.context)
    filter.width = obs.obs_source_get_base_width(parent)
    filter.height = obs.obs_source_get_base_height(parent)
+   curTimestamp =  obs.obs_source_media_get_time(parent) / 1000.0
+   if curTimestamp > 0 then
+      filter.iTime = curTimestamp
+   end
+   -- print(string.format("Custom shader video_tick : %0.2f s\n", filter.iTime))
    obs.vec2_set(filter.iResolution, filter.width, filter.height)
 
    filter.rand_f = math.random()
-   filter.iTime = filter.iTime + seconds
    filter.lTime = get_vec(os.date("%H,%M,%S"), 3)
 end
 

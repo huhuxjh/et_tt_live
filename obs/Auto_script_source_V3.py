@@ -9,24 +9,29 @@ import json
 import threading
 import queue
 import random
+from pathlib import Path
 from template_generator import ffmpeg as template_ffmpeg
 OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART = 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART'
 OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE = 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'
 OBS_MEDIA_WAV_NAME = "wav"
 OBS_MEDIA_VIDEO_NAME = "video"
 
+OBS_MEDIA_VIDEO_EFFECT_KIND = "filter-custom"
+OBS_MEDIA_VIDEO_EFFECT_DURATION = "duration"
+OBS_MEDIA_VIDEO_EFFECT_TIME = "iTime"
 class EventObserver:
-    def __init__(self, add_filter):
+    def __init__(self, effect_dir, add_filter):
         self._control_layers = []
         self._sceneLayers = []
         self._curScene = ""
         self._curSceneWidth = 0
         self._curSceneHeight = 0
         self.add_filter = add_filter
+        self._effect_dir = effect_dir
+        self._effects = []
         self.video_callback = None
         self.audio_callback = None
         self._lock = threading.Lock()
-        self._callback = Callback()
         self._playingSources = set()
     def __enter__(self):
         return self
@@ -79,7 +84,6 @@ class EventObserver:
             #     if item['sourceName'] == data.input_name :
             #         self._request.set_scene_item_index(self._curScene, item['sceneItemId'], len(self._sceneLayers))
             #         break
-        self._callback.Trigger("onMediaInputPlaybackStarted", data)
 
     def has_source(self, key):
         all_inputs = self._request.get_input_list()        
@@ -87,7 +91,7 @@ class EventObserver:
             if inp["inputName"] == key and (inp["inputKind"] == 'ffmpeg_source' or inp["inputKind"] == 'vlc_source') :
                 return True
         return False
-        
+
     def create_input(self, key, mp4):
         self._control_layers.append(key)
         self._request.create_input(self._curScene, key, "ffmpeg_source", {
@@ -101,6 +105,16 @@ class EventObserver:
                 'smoothness':88,
                 'spill':10
             })
+        # 视频创建时一次性加载_effect_dir下所有的自定义的特效
+        if self._effect_dir is not None and os.path.isdir(self._effect_dir):
+            all_effects = os.listdir(self._effect_dir)
+            for effect in all_effects:
+                if os.path.isfile(os.path.join(self._effect_dir, effect)) and os.path.join(self._effect_dir, effect).lower().endswith('.effect'):
+                    name = Path(effect).stem
+                    self._request.create_source_filter(key, name, OBS_MEDIA_VIDEO_EFFECT_KIND, {
+                        'effect_path': os.path.join(self._effect_dir, effect)
+                    })
+                    self._effects.append(name)
         self._sceneLayers = self._request.get_scene_item_list(self._curScene).scene_items
     
     def update_input(self, key, mp4):
@@ -114,6 +128,10 @@ class EventObserver:
     def play_video(self, key, source_config, video_callback):
         self.video_callback = video_callback
         self._playingSources.add(self._curScene + "_" + key)
+        # for effect in self._effects:
+        #     self._request.set_source_filter_settings(key, effect, {
+        #         OBS_MEDIA_VIDEO_EFFECT_TIME : 0.0
+        #     }, True)
         for item in self._sceneLayers:
             if item['sourceName'] == key:
                 trans = {}
@@ -136,14 +154,12 @@ class EventObserver:
         with self._lock:
             for item in self._sceneLayers:
                 if item['sourceName'] == data.input_name and (item["sourceName"] in self._control_layers):
-                    self._request.set_scene_item_enabled(self._curScene, item['sceneItemId'], False)
                     if self.video_callback:
                         self.video_callback()
                 elif item['sourceName'] == data.input_name and item["sourceName"] == OBS_MEDIA_WAV_NAME:
                     if self.audio_callback:
                         self.audio_callback()
             self._playingSources.discard(self._curScene + "_" + data.input_name)
-        self._callback.Trigger("onMediaInputPlaybackEnded", data)
 
     def on_current_program_scene_changed(self, data):
         print(f"[OBS] on_current_program_scene_changed: {data.scene_name}")
@@ -152,18 +168,20 @@ class EventObserver:
                 self._curScene = data.scene_name
                 self._sceneLayers = self._request.get_scene_item_list(self._curScene).scene_items
 
-        self._callback.Trigger("onCurrentSceneChanged", data)
-
     def on_exit_started(self, _):
         print("[OBS] closing!")
 
 class OBScriptManager :
-    def __init__(self, video_port, audio_port, sub_tag_dir, add_filter=False):
+    # video_port ： obs 视频端口
+    # audio_port ： obs 音频端口
+    # sub_tag_dir ： 要播放的视频标签的路径
+    # effect_dir ： 切换视频时的入场动画的资源目录
+    # add_filter ： 是否添加绿幕抠图滤镜
+    def __init__(self, video_port, audio_port, sub_tag_dir, effect_dir = None, add_filter=False):
         self.video_port = video_port
         self.audio_port = audio_port
-        self.maxCommandNum = 1
-        self._video_observer = EventObserver(add_filter)
-        self._audio_observer = EventObserver(add_filter)
+        self._video_observer = EventObserver(effect_dir, add_filter)
+        self._audio_observer = EventObserver(effect_dir, add_filter)
         self._isInitialized = False
         self._curPlayingVideo = ""
         self.tags = {}
@@ -172,24 +190,24 @@ class OBScriptManager :
             for tag in all_tags:
                 self.tags[tag] = []
                 if os.path.isfile(os.path.join(sub_tag_dir, tag)):
-                    w,h,bitrate,fps,video_duration = template_ffmpeg.videoInfo(os.path.join(sub_tag_dir, tag), "")
+                    # w,h,bitrate,fps,video_duration = template_ffmpeg.videoInfo(os.path.join(sub_tag_dir, tag), "")
                     self.tags[tag].append({
                         "path": os.path.join(sub_tag_dir, tag),
-                        "width": w,
-                        "height": h,
-                        "duration": video_duration,
+                        # "width": w,
+                        # "height": h,
+                        # "duration": video_duration,
                         "played": False
                     })
                 elif os.path.isdir(os.path.join(sub_tag_dir, tag)):
                     all_files = os.listdir(os.path.join(sub_tag_dir, tag))
                     all_files = [f for f in all_files if f.lower().endswith(('.mp4', '.mov', '.avi'))]
                     for f in all_files:
-                        w,h,bitrate,fps,video_duration = template_ffmpeg.videoInfo(os.path.join(sub_tag_dir, tag, f), "")
+                        # w,h,bitrate,fps,video_duration = template_ffmpeg.videoInfo(os.path.join(sub_tag_dir, tag, f), "")
                         self.tags[tag].append({
                             "path": os.path.join(sub_tag_dir, tag, f),
-                            "width": w,
-                            "height": h,
-                            "duration": video_duration,
+                            # "width": w,
+                            # "height": h,
+                            # "duration": video_duration,
                             "played": False
                         })
                 
@@ -197,10 +215,6 @@ class OBScriptManager :
         return self
     def __exit__(self, exc_type, exc_value, exc_traceback):
         return
-    
-    def register_lisenter(self, fns: Union[Iterable, Callable]):
-        self._video_observer._callback.register(fns)
-        self._audio_observer._callback.register(fns)
     
     def get_play_tag_list(self, tag):
         if tag not in self.tags:
@@ -244,6 +258,11 @@ class OBScriptManager :
             else:
                 play_mp4 = random.choice(has_files)
             play_mp4["played"] = True
+        if 'width' not in play_mp4:
+            w,h,bitrate,fps,video_duration = template_ffmpeg.videoInfo(play_mp4["path"], "")
+            play_mp4["width"] = w
+            play_mp4["height"] = h
+            play_mp4["duration"] = video_duration
         if self._video_observer.has_source(OBS_MEDIA_VIDEO_NAME) == False:
             self._video_observer.create_input(OBS_MEDIA_VIDEO_NAME, play_mp4["path"])
         else:
@@ -285,7 +304,7 @@ if __name__ == "__main__":
     #obs 工具-》WebSocket服务器设置-》服务端端口，默认是4455，本地不开启身份认证
     # 脚本启动前，应把本地OBS的所有scene和source都配置好
     # 脚本目前只负责scene和source的切换和控制
-    scriptMgr = OBScriptManager(4455, 4456, "D:\\video_normal", True)
+    scriptMgr = OBScriptManager(4455, 4455, "D:\\video_normal", "D:/code/et_tt_live/obs/obs_effect/", False)
     scriptMgr.start()
     print(scriptMgr.get_play_tag_list("discount_now"))
     idx = 0
@@ -300,17 +319,17 @@ if __name__ == "__main__":
             continue
             
         tag = random.choice(["discount_in_live", "discount_now"])
-        if idx > 3:
-            idx = 0
-        wav = ["D:\\audios\\tts_2_0.wav","D:\\audios\\tts_18_0.wav","D:\\audios\\tts_44_0.wav","D:\\audios\\tts_56_0.wav"][idx]
+        # if idx > 3:
+        #     idx = 0
+        # wav = ["D:\\audios\\tts_2_0.wav","D:\\audios\\tts_18_0.wav","D:\\audios\\tts_44_0.wav","D:\\audios\\tts_56_0.wav"][idx]
         print("======================= play")
-        print("======================= audio " + wav)
+        # print("======================= audio " + wav)
         print("======================= video " + tag)
         scriptMgr.play_video(tag, None, video_callback)
-        scriptMgr.play_audio(wav, audio_callback)
+        # scriptMgr.play_audio(wav, audio_callback)
         time.sleep(2)
-        v1, v2 = scriptMgr.get_audio_status()
-        print("======================= audio 进度：" + str(v1) + "," + str(v2))
+        # v1, v2 = scriptMgr.get_audio_status()
+        # print("======================= audio 进度：" + str(v1) + "," + str(v2))
         v1, v2 = scriptMgr.get_video_status()
         print("======================= video 进度：" + str(v1) + "," + str(v2))
         time.sleep(2)
