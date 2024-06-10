@@ -254,13 +254,16 @@ class OBScriptManager :
     # effect ：动画枚举名称
     #          OBS_MEDIA_VIDEO_EFFECT_1 缩小动画
     #          OBS_MEDIA_VIDEO_EFFECT_2 放大-》缩小动画
-    # duration : 动画时长(秒为单位)
-    def play_effect(self, effect, duration):
+    # params : effect参数列表
+        #e.g:
+            # {
+            #     "duration" : 4.0, 特效播放时长，秒为单位
+            #     "scale" : random.uniform(0.3, 0.5) 特效的额外的输入参数，不配置就用.effect定义的默认值
+            # }
+    def play_effect(self, effect, params):
         if effect in self._video_observer._effects:
-            self._video_observer._request.set_source_filter_settings(self._curPlayingVideo, effect, {
-                "duration" : duration,
-                "iTime" : 0.0
-            }, True)
+            params["iTime"] = 0.0
+            self._video_observer._request.set_source_filter_settings(self._curPlayingVideo, effect, params, True)
     
     def play_video(self, tag, mp4=None, callback=None):
         print("[OBS-Control] play tag "+ tag)
@@ -348,7 +351,10 @@ if __name__ == "__main__":
         # print("======================= audio " + wav)
         print("======================= video " + tag)
         scriptMgr.play_video(tag, None, video_callback)
-        scriptMgr.play_effect(OBS_MEDIA_VIDEO_EFFECT_2, 4.0)
+        scriptMgr.play_effect(OBS_MEDIA_VIDEO_EFFECT_2, {
+                "duration" : 4.0,
+                "scale" : random.uniform(2, 4)
+        })
         # scriptMgr.play_audio(wav, audio_callback)
         time.sleep(2)
         # v1, v2 = scriptMgr.get_audio_status()
