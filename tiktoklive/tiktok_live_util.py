@@ -404,7 +404,7 @@ def drive_video(wav, label):
     print(f"drive_video:{label}, {wav_dur}")
 
     play_list = obs_wrapper.get_play_tag_list(label)
-    # 把最近播放过的（最近4个）排除掉，得出一个当前可用的list:
+    # 把最近播放过的排除掉，得出一个当前可用的list:
     available_list = []
     for item in play_list:
         path = item["path"]
@@ -440,12 +440,12 @@ def drive_video(wav, label):
             append_last_obs_queue(suitable_item)
             print("put obs_queue: obs is not playing")
         else:
-            # if len(play_list) > 0:
-            #     print("no suitable video, use random video")
-            #     random_item = random.choice(play_list)
-            #     obs_queue.append(ObsItemWrapper(obs_item=random_item, label=label))
-            #     append_last_obs_queue(random_item)
-            print("play_list ==0")
+            if len(play_list) > 0:
+                print("no suitable video, use random video")
+                random_item = random.choice(play_list)
+                obs_queue.append(ObsItemWrapper(obs_item=random_item, label=label))
+                append_last_obs_queue(random_item)
+
 
 async def prepare(ref_speaker_name):
     print("live mode: prepare")
