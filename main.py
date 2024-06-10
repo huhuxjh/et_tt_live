@@ -3,9 +3,9 @@ from remote_config import lark_util
 import tiktoklive.tiktok_live_util as tiktokUtil
 
 
-def start(browser_id, scenes, product, ref_speaker_name, device_id, obs_video_port,obs_audio_port, mode, config_id):
+def start(browser_id, scenes, product, ref_speaker_name, device_id, obs_video_port,obs_audio_port, mode, config_id, interactive):
     print(f"{browser_id}")
-    tiktokUtil.startClient(browser_id, scenes, product, ref_speaker_name, device_id, obs_video_port,obs_audio_port, mode, config_id)
+    tiktokUtil.startClient(browser_id, scenes, product, ref_speaker_name, device_id, obs_video_port,obs_audio_port, mode, config_id, interactive)
 
 
 if __name__ == '__main__':
@@ -16,9 +16,11 @@ if __name__ == '__main__':
     # 0: live 实时生成
     # 1: prepare 直播前准备 
     # 2: play prepare 播放准备素材
-    run_mode = "2"
     #  是否重新生成script
     reproduce = False
+
+    # 是否加入互动
+    interactive = False
 
     idx = 1
     while idx < len(sys.argv):
@@ -29,7 +31,7 @@ if __name__ == '__main__':
         elif sys.argv[idx] == "--obs_audio_port":
             obs_audio_port = int(sys.argv[idx + 1])
         elif sys.argv[idx] == "--run_mode":
-            run_mode = sys.argv[idx + 1]
+            run_mode = int(sys.argv[idx + 1])
         elif sys.argv[idx] == '--force':
             reproduce = sys.argv[idx + 1] == 'True'
         idx += 1
@@ -44,6 +46,6 @@ if __name__ == '__main__':
     # 获取助播脚本
     scenes = lark_util.query_assist_script(config.assist_sheet, config.assist_range)
     # 启动main逻辑
-    start(config.browser_id, scenes, product, config.ref_speaker, config.sound_device, obs_video_port,obs_audio_port, run_mode, config_id)
+    start(config.browser_id, scenes, product, config.ref_speaker, config.sound_device, obs_video_port, obs_audio_port, run_mode, config_id, interactive)
     # 如果完成后, 更新缓存, 拷贝音频
     product.commit()
