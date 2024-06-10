@@ -6,6 +6,8 @@ import shutil
 import sys
 import threading
 
+import chrome_utils
+import driver_utils
 import soundfile
 from pydub import AudioSegment
 from collections import deque
@@ -35,8 +37,8 @@ last_social_message_time = 0
 social_message_min_period = 60
 enter_message_min_period = 60  # 进场欢迎最短间隔，60秒内最多发一个
 
-query_queue = queue.Queue(maxsize=2000)
-tts_queue = queue.Queue(maxsize=2000)
+query_queue = queue.Queue()
+tts_queue = queue.Queue()
 urgent_query_queue = queue.Queue(maxsize=10)
 urgent_tts_queue = queue.Queue(maxsize=10)
 
@@ -51,9 +53,9 @@ obs_wrapper = None
 local_video_dir = "D:\\video_res"
 
 enter_reply_list = [
-    'hello~',
-    'hi~',
-    'welcome~',
+    'hello,',
+    'hi,',
+    'welcome to the living room,',
 ]
 
 like_reply_list = [
@@ -164,8 +166,30 @@ async def check_enter():
         last_enter_message = enter_owner_name
         enter_reply = random.choice(enter_reply_list)
         last_enter_message_time = current_timestamp
-        await send_message(f'{enter_reply} {enter_owner_name}')
+        llm_query_for_active(f"{enter_reply} {enter_owner_name}")
+        # await send_message(f'{enter_reply} {enter_owner_name}')
         # todo: llm and createTTS and put to urgent_queue
+
+
+# 互动的llm查询
+async def llm_query_for_active(content):
+    # todo: query llm for active
+    print(" i want to query a llm for sb's enter")
+    an = content
+    out = os.path.join(outputs_v2, f'{yyyymmdd}_{config_id}{os.path.sep}tts_{time.time}.wav')
+
+    out_dir = os.path.dirname(out)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+    with timer('tts-local'):
+        output_name, _ = os.path.splitext(os.path.basename(out))
+        wav = await tts_async(an, "", output_name, "chat_tts")
+        wav = wav.replace('"', '')
+        # 复制到本地
+        shutil.copy(wav, out)
+        # wav 入队
+        urgent_tts_queue.put(out)
+
 
 
 async def send_message(content):
@@ -314,13 +338,13 @@ def play_audio(callback):
     device_list = SOUND_DEVICE_NAME
     # 如果配置了设备名字，那么通过name_to_index去转换index，保证设备名唯一
     # device_index = name_to_index(device_name)
-
-    # if not urgent_tts_queue.empty():
-    #     urgent_tts = urgent_tts_queue.get()
-    #     # todo:优先插入紧急TTS
-    content_item = tts_queue.get()
-    wav = content_item.wav
-    label = content_item.vid_label
+    label = ""
+    if not urgent_tts_queue.empty():
+        wav = urgent_tts_queue.get()
+    else:
+        content_item = tts_queue.get()
+        wav = content_item.wav
+        label = content_item.vid_label
     print(f"end to get tts queue, size:{tts_queue.qsize()}")
     device = device_list[device_index]
     if obs_wrapper:
@@ -374,11 +398,13 @@ def append_last_obs_queue(obs_item):
 
 
 def drive_video(wav, label):
+    if len(label) == 0:
+        return
     wav_dur = get_wav_dur(wav)
     print(f"drive_video:{label}, {wav_dur}")
 
     play_list = obs_wrapper.get_play_tag_list(label)
-    # 把最近播放过的（最近4个）排除掉，得出一个当前可用的list:
+    # 把最近播放过的排除掉，得出一个当前可用的list:
     available_list = []
     for item in play_list:
         path = item["path"]
@@ -414,12 +440,12 @@ def drive_video(wav, label):
             append_last_obs_queue(suitable_item)
             print("put obs_queue: obs is not playing")
         else:
-            # if len(play_list) > 0:
-            #     print("no suitable video, use random video")
-            #     random_item = random.choice(play_list)
-            #     obs_queue.append(ObsItemWrapper(obs_item=random_item, label=label))
-            #     append_last_obs_queue(random_item)
-            print("play_list ==0")
+            if len(play_list) > 0:
+                print("no suitable video, use random video")
+                random_item = random.choice(play_list)
+                obs_queue.append(ObsItemWrapper(obs_item=random_item, label=label))
+                append_last_obs_queue(random_item)
+
 
 async def prepare(ref_speaker_name):
     print("live mode: prepare")
@@ -434,16 +460,24 @@ async def prepare(ref_speaker_name):
 
 async def play_prepare(ref_speaker_name):
     print("live mode: play_prepare")
-    # t1 = asyncio.create_task(enter_task())
-    # t2 = asyncio.create_task(social_task())
-    # t3 = asyncio.create_task(broadcast_task())
-    # t4 = asyncio.create_task(chat_task())
     global prepare_tts_task
-    prepare_tts_task = asyncio.create_task(list_prepare_tts_task())
-    try:
-        await asyncio.gather(prepare_tts_task)
-    except asyncio.CancelledError:
-        print("live mode: play_prepare")
+    if interactive_enable:
+        t1 = asyncio.create_task(enter_task())
+        # t2 = asyncio.create_task(social_task())
+        # t3 = asyncio.create_task(broadcast_task())
+        # t4 = asyncio.create_task(chat_task())
+        prepare_tts_task = asyncio.create_task(list_prepare_tts_task())
+        try:
+            await asyncio.gather(t1, prepare_tts_task)
+        except asyncio.CancelledError:
+            print("live mode: play_prepare")
+    else:
+        prepare_tts_task = asyncio.create_task(list_prepare_tts_task())
+        try:
+            await asyncio.gather(prepare_tts_task)
+        except asyncio.CancelledError:
+            print("live mode: play_prepare")
+
 
 
 async def live(ref_speaker_name):
@@ -462,51 +496,49 @@ async def live(ref_speaker_name):
 
 
 def is_prepare():
-    return live_mode == "1"
+    return live_mode == 1
 
 
 def is_play_prepare():
-    return live_mode == "2"
+    return live_mode == 2
 
 
-def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_video_port,obs_audio_port, mode, configId):
+def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_video_port,obs_audio_port, mode, configId, interactive):
     global obs_wrapper
-    global du, script_scenes, product_script, device_index, live_mode, config_id
+    global du, script_scenes, product_script, device_index, live_mode, config_id, interactive_enable
     script_scenes = scenes
     product_script = product
     device_index = device_id
     live_mode = mode
     config_id = configId
-    # driver,_ = chrome_utils.get_driver(browserId)
-    # if driver:
-    #     du = driver_utils.DriverUtils(driver)
-    #     #启动协程
-    #     asyncio.run(main())
+    interactive_enable = interactive
+    if interactive_enable:
+        driver,_ = chrome_utils.get_driver(browserId)
+        if driver:
+            du = driver_utils.DriverUtils(driver)
+
     global live_running, force_stop
     live_running = True
     force_stop = False
     print('is_prepare, is_play_prepare=', is_prepare(), ', ', is_play_prepare())
     audio_thread = None
-    video_thread = None
     if is_prepare():
         asyncio.run(prepare(ref_speaker_name))
     elif is_play_prepare():
         if obs_video_port > 0:
             obs_wrapper = OBScriptManager(obs_video_port,obs_audio_port, local_video_dir)
             obs_wrapper.start()
-            # video_thread = play_video_cycle()
         audio_thread = play_wav_cycle()
         asyncio.run(play_prepare(ref_speaker_name))
     else:
         if obs_video_port > 0:
             obs_wrapper = OBScriptManager(obs_video_port,obs_audio_port, local_video_dir)
             obs_wrapper.start()
-            # video_thread = play_video_cycle()
         audio_thread = play_wav_cycle()
         asyncio.run(live(ref_speaker_name))
     print('thread force stop', audio_thread)
-    # if audio_thread and audio_thread.is_alive():
-    #     force_stop = True
+    if audio_thread and audio_thread.is_alive():
+        force_stop = True
 
 
 def play_wav_cycle():
@@ -531,74 +563,3 @@ def play_wav_cycle():
     thread = threading.Thread(target=worker)
     thread.start()
     return thread
-
-#
-# end = False
-#
-#
-# def play_wav_cycle():
-#     def worker():
-#         global live_running, force_stop
-#         while live_running or not force_stop:
-#             try:
-#                 global end
-#                 end = False
-#
-#                 def complete():
-#                     global end
-#                     end = True
-#
-#                 play_audio(complete)
-#                 while not end:
-#                     time.sleep(1)
-#             except soundfile.LibsndfileError as ignore:
-#                 print(ignore)
-#             time.sleep(0.5)
-#
-#     thread = threading.Thread(target=worker)
-#     thread.start()
-#     return thread
-#
-
-# video_end = False
-#
-#
-# def play_video_cycle():
-#     def worker():
-#         global live_running, force_stop
-#         while live_running or not force_stop:
-#             try:
-#                 global video_end
-#                 video_end = False
-#
-#                 def video_complete():
-#                     print("receive video_complete")
-#                     global video_end
-#                     video_end = True
-#                 if play_video(video_complete):
-#                     while not video_end:
-#                         time.sleep(1)
-#             except Exception as ignore:
-#                 print(ignore)
-#             time.sleep(0.5)
-#
-#     thread = threading.Thread(target=worker)
-#     thread.start()
-#     return thread
-# from template_generator import ffmpeg as template_ffmpeg
-# for root, dirs, files in os.walk("D:\\video_res"):
-#     for file in files:
-#         # 检查文件扩展名是否匹配
-#         if any(file.lower().endswith(ext) for ext in ['.mp4', '.avi', '.mov']):
-#             src = os.path.join(root, file)
-#             dst = os.path.join(root, file.replace(".MOV", "_.MOV").replace(".mov", "_.mov"))
-#             template_ffmpeg.process([
-#                 "-i",
-#                 src,
-#                 "-metadata:s:v:0",
-#                 "rotate=0",
-#                 "-y",
-#                 dst
-#             ], "")
-#             os.remove(src)
-#             os.rename(dst, src)
