@@ -29,6 +29,7 @@ async def llm_async(query, role_play, context, inst_text, max_num_sentence, repe
         "role_play": role_play,
         "context": context,
         "inst_text": inst_text,
+        "spc_type": 'llm_glm',      # 可以指定llm大模型类型，不过每次切换都需要卸载/加载，尽量不要切换
         "max_num_sentence": max_num_sentence,
         "repetition_penalty": repetition_penalty
     }
