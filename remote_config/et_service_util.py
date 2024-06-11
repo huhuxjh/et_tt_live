@@ -47,14 +47,14 @@ async def tts_async(text, ref_name, out_name, spc_type):
     # "ref_name": ref_name      # 指定音色
     # 以下是chatTTS参数
     # "spc_type": "chat_tts"
-    # "manual_seed": 0       # 指定音色: 147,283,304,409,494,655女，103,266,327,410,417,715男
+    # "manual_seed": 0       # 指定音色: 414女，410男
     # "skip_refine_text": False # True表示自行插入语气
     data = {
         "text": text,
         "out_name": out_name,
         "spc_type": spc_type,
         "ref_name": ref_name,
-        "manual_seed": 414,
+        "manual_seed": 410,
         "skip_refine_text": False
     }
     response = await post_retry(url, headers, data)
