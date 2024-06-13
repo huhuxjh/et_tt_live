@@ -11,6 +11,19 @@ import queue
 import random
 from pathlib import Path
 from template_generator import ffmpeg as template_ffmpeg
+import cv2
+def get_video_info_opencv(file_path):
+    cap = cv2.VideoCapture(file_path)
+    if not cap.isOpened():
+        raise ValueError("Error opening video file")
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    duration = frame_count / fps
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    cap.release()
+    return duration, width, height
+
 OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART = 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART'
 OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE = 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PAUSE'
 OBS_MEDIA_WAV_NAME = "wav"
@@ -284,7 +297,8 @@ class OBScriptManager :
                 play_mp4 = random.choice(has_files)
             play_mp4["played"] = True
         if 'width' not in play_mp4:
-            w,h,bitrate,fps,video_duration = template_ffmpeg.videoInfo(play_mp4["path"], "")
+            # w,h,bitrate,fps,video_duration = template_ffmpeg.videoInfo(play_mp4["path"], "")
+            video_duration, w, h = get_video_info_opencv(play_mp4["path"])
             play_mp4["width"] = w
             play_mp4["height"] = h
             play_mp4["duration"] = video_duration
