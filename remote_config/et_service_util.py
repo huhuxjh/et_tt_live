@@ -3,19 +3,19 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 import json
 
+HOST = 'http://127.0.0.1:9394'
+
 
 async def post_retry(url, headers, data):
     retry_times = 3  # 设置重试次数
     retry_backoff_factor = 2.0  # 设置重试间隔时间
+    status_force_list = [400, 401, 403, 404, 500, 502, 503, 504]
     session = requests.Session()
-    retry = Retry(total=retry_times, backoff_factor=retry_backoff_factor, status_forcelist=[500, 502, 503, 504])
+    retry = Retry(total=retry_times, backoff_factor=retry_backoff_factor, status_forcelist=status_force_list)
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
     session.mount('https://', adapter)
     return session.post(url, headers=headers, json=data)
-
-
-HOST = 'http://127.0.0.1:9394'
 
 
 async def llm_async(query, role_play, context, inst_text, max_num_sentence, repetition_penalty):
