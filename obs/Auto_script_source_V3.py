@@ -204,11 +204,12 @@ class OBScriptManager :
                 self.tags[tag] = []
                 if os.path.isfile(os.path.join(sub_tag_dir, tag)):
                     # w,h,bitrate,fps,video_duration = template_ffmpeg.videoInfo(os.path.join(sub_tag_dir, tag), "")
+                    video_duration, w, h = get_video_info_opencv(os.path.join(sub_tag_dir, tag))
                     self.tags[tag].append({
                         "path": os.path.join(sub_tag_dir, tag),
-                        # "width": w,
-                        # "height": h,
-                        # "duration": video_duration,
+                        "width": w,
+                        "height": h,
+                        "duration": video_duration,
                         "played": False
                     })
                 elif os.path.isdir(os.path.join(sub_tag_dir, tag)):
@@ -216,11 +217,12 @@ class OBScriptManager :
                     all_files = [f for f in all_files if f.lower().endswith(('.mp4', '.mov', '.avi'))]
                     for f in all_files:
                         # w,h,bitrate,fps,video_duration = template_ffmpeg.videoInfo(os.path.join(sub_tag_dir, tag, f), "")
+                        video_duration, w, h = get_video_info_opencv(os.path.join(sub_tag_dir, tag, f))
                         self.tags[tag].append({
                             "path": os.path.join(sub_tag_dir, tag, f),
-                            # "width": w,
-                            # "height": h,
-                            # "duration": video_duration,
+                            "width": w,
+                            "height": h,
+                            "duration": video_duration,
                             "played": False
                         })
                 
