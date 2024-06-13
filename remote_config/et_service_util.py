@@ -1,9 +1,12 @@
+import uuid
+
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 import json
 
 HOST = 'http://127.0.0.1:9394'
+_ET_UUID_ = uuid.uuid1().hex
 
 
 async def post_retry(url, headers, data):
@@ -18,13 +21,15 @@ async def post_retry(url, headers, data):
     return session.post(url, headers=headers, json=data)
 
 
-async def llm_async(query, role_play, context, inst_text, max_num_sentence, repetition_penalty):
+async def llm_async(query, role_play, context, inst_text, max_num_sentence, repetition_penalty, language="english"):
     url = f"{HOST}/llm/tr"
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json"
     }
     data = {
+        "et_uuid": _ET_UUID_,
+        "language": language,
         "query": query,
         "role_play": role_play,
         "context": context,
@@ -38,7 +43,7 @@ async def llm_async(query, role_play, context, inst_text, max_num_sentence, repe
     return resp_json['text']
 
 
-async def tts_async(text, ref_name, out_name, spc_type):
+async def tts_async(text, ref_name, out_name, spc_type, language="english"):
     url = f"{HOST}/tts/tr"
     headers = {
         "accept": "application/json",
@@ -51,6 +56,8 @@ async def tts_async(text, ref_name, out_name, spc_type):
     # "manual_seed": 0       # 指定音色: 414女，410男
     # "skip_refine_text": False # True表示自行插入语气
     data = {
+        "et_uuid": _ET_UUID_,
+        "language": language,
         "text": text,
         "out_name": out_name,
         "spc_type": spc_type,
