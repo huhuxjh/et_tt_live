@@ -32,6 +32,8 @@ OBS_MEDIA_VIDEO_NAME = "video"
 OBS_MEDIA_VIDEO_EFFECT_KIND = "filter-custom"
 OBS_MEDIA_VIDEO_EFFECT_1 = "ZoomIn"
 OBS_MEDIA_VIDEO_EFFECT_2 = "ZoomOutIn"
+OBS_EFFECT_TYPE_SCENE = 0
+OBS_EFFECT_TYPE_SOURCE = 1
 class EventObserver:
     def __init__(self, effect_dir, add_filter):
         self._control_layers = []
@@ -42,6 +44,7 @@ class EventObserver:
         self.add_filter = add_filter
         self._effect_dir = effect_dir
         self._effects = []
+        self._effectType = OBS_EFFECT_TYPE_SCENE
         self.video_callback = None
         self.audio_callback = None
         self._lock = threading.Lock()
@@ -121,13 +124,20 @@ class EventObserver:
         # 视频创建时一次性加载_effect_dir下所有的自定义的特效
         if self._effect_dir is not None and os.path.isdir(self._effect_dir):
             all_effects = os.listdir(self._effect_dir)
+            filterObject = self._curScene if self._effectType == OBS_EFFECT_TYPE_SCENE else key
+            response = self._request.get_source_filter_list(self._curScene)
+            addedFilters = []
+            if response is not None and response.filters is not None:
+                for filter in response.filters:
+                    addedFilters.append(filter['filterName'])
             for effect in all_effects:
                 if os.path.isfile(os.path.join(self._effect_dir, effect)) and os.path.join(self._effect_dir, effect).lower().endswith('.effect'):
                     name = Path(effect).stem
-                    self._request.create_source_filter(key, name, OBS_MEDIA_VIDEO_EFFECT_KIND, {
-                        'effect_path': os.path.join(self._effect_dir, effect),
-                        "iTime" : 999.0
-                    })
+                    if name not in addedFilters:
+                        self._request.create_source_filter(filterObject, name, OBS_MEDIA_VIDEO_EFFECT_KIND, {
+                            'effect_path': os.path.join(self._effect_dir, effect),
+                            "iTime" : 999.0
+                        })
                     self._effects.append(name)
         self._sceneLayers = self._request.get_scene_item_list(self._curScene).scene_items
     
@@ -284,7 +294,7 @@ class OBScriptManager :
     def play_effect(self, effect, params):
         if effect in self._video_observer._effects:
             params["iTime"] = 0.0
-            self._video_observer._request.set_source_filter_settings(self._curPlayingVideo, effect, params, True)
+            self._video_observer._request.set_source_filter_settings(self._video_observer._curScene if self._video_observer._effectType == OBS_EFFECT_TYPE_SCENE else self._curPlayingVideo, effect, params, True)
     
     def play_video(self, tag, mp4=None, callback=None):
         print("[OBS-Control] play tag "+ tag)
