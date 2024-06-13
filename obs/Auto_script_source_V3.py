@@ -193,6 +193,8 @@ class OBScriptManager :
     def __init__(self, video_port, audio_port, sub_tag_dir, effect_dir = None, add_filter=False):
         self.video_port = video_port
         self.audio_port = audio_port
+        if effect_dir is None:
+            effect_dir = os.path.join(os.path.dirname(__file__), "obs_effect")
         self._video_observer = EventObserver(effect_dir, add_filter)
         self._audio_observer = EventObserver(effect_dir, add_filter)
         self._isInitialized = False
@@ -201,6 +203,8 @@ class OBScriptManager :
         if os.path.isdir(sub_tag_dir):
             all_tags = os.listdir(sub_tag_dir)
             for tag in all_tags:
+                if tag == ".DS_Store":
+                    continue
                 self.tags[tag] = []
                 if os.path.isfile(os.path.join(sub_tag_dir, tag)):
                     # w,h,bitrate,fps,video_duration = template_ffmpeg.videoInfo(os.path.join(sub_tag_dir, tag), "")
@@ -216,6 +220,8 @@ class OBScriptManager :
                     all_files = os.listdir(os.path.join(sub_tag_dir, tag))
                     all_files = [f for f in all_files if f.lower().endswith(('.mp4', '.mov', '.avi'))]
                     for f in all_files:
+                        if ".DS_Store" in f:
+                            continue
                         # w,h,bitrate,fps,video_duration = template_ffmpeg.videoInfo(os.path.join(sub_tag_dir, tag, f), "")
                         video_duration, w, h = get_video_info_opencv(os.path.join(sub_tag_dir, tag, f))
                         self.tags[tag].append({
@@ -345,7 +351,7 @@ if __name__ == "__main__":
     #obs 工具-》WebSocket服务器设置-》服务端端口，默认是4455，本地不开启身份认证
     # 脚本启动前，应把本地OBS的所有scene和source都配置好
     # 脚本目前只负责scene和source的切换和控制
-    scriptMgr = OBScriptManager(4455, 4455, "D:\\video_normal", "D:/code/et_tt_live/obs/obs_effect/", False)
+    scriptMgr = OBScriptManager(4455, 4455, "D:\\video_res", None, False)
     scriptMgr.start()
     print(scriptMgr.get_play_tag_list("discount_now"))
     idx = 0
@@ -359,7 +365,7 @@ if __name__ == "__main__":
             time.sleep(2)
             continue
             
-        tag = random.choice(["discount_in_live", "discount_now"])
+        tag = random.choice(["order_urging", "selling_point_1", "selling_point_3"])
         # if idx > 3:
         #     idx = 0
         # wav = ["D:\\audios\\tts_2_0.wav","D:\\audios\\tts_18_0.wav","D:\\audios\\tts_44_0.wav","D:\\audios\\tts_56_0.wav"][idx]

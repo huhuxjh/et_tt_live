@@ -5,6 +5,7 @@ import random
 import shutil
 import sys
 import threading
+import time
 
 import chrome_utils
 import driver_utils
@@ -36,6 +37,9 @@ last_social_message_time = 0
 
 social_message_min_period = 60
 enter_message_min_period = 60  # 进场欢迎最短间隔，60秒内最多发一个
+
+last_play_effect_time = 0
+play_effect_period = 120
 
 query_queue = queue.Queue()
 tts_queue = queue.Queue()
@@ -372,6 +376,16 @@ def play_video(callback):
     return False
 
 
+def play_effect():
+    global play_effect_period, last_play_effect_time
+    current_time = time.time()
+    if obs_wrapper and (current_time - last_play_effect_time) > play_effect_period :
+        print(f"play_effect: {current_time}")
+        param = {"duration": 2.0, "scale": random.uniform(1.2, 1.4)}
+        obs_wrapper.play_effect(OBS_MEDIA_VIDEO_EFFECT_2, param)
+        last_play_effect_time = current_time
+
+
 def in_recent_play_queue(path):
     for element in last_obs_queue:
         if element == path:
@@ -554,6 +568,8 @@ def play_wav_cycle():
                     v1, v2 = obs_wrapper.get_video_status()
                     if v2 == 0 or (v2 - v1) == 0:
                         play_video(None)
+
+                    play_effect()
                 else:
                     play_audio(None)
             except soundfile.LibsndfileError as ignore:
