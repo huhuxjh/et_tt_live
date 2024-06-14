@@ -68,7 +68,7 @@ async def list_prepare_tts_task():
     # if prepare_tts_task: prepare_tts_task.cancel()
 
 
-async def check_comment():
+async def check_comment(ref_speaker_name):
     global last_chat_message
     # 获取普通聊天List
     try:
@@ -85,7 +85,7 @@ async def check_comment():
     if owner_name + comment != last_chat_message:
         print(f"chat {owner_name} -> {comment}")
         last_chat_message = owner_name + comment
-        # todo: 接LLM --> TTS
+        await llm_query_for_active(chat_with(owner_name, comment), ref_speaker_name)
 
 
 async def check_social(ref_speaker_name):
@@ -163,6 +163,9 @@ async def check_enter(ref_speaker_name):
         await llm_query_for_active(welcome_with(enter_owner_name), ref_speaker_name)
         # await send_message(f'{enter_reply} {enter_owner_name}')
         # todo: llm and createTTS and put to urgent_queue
+
+def chat_with(who: str, content: str):
+    base = f'{who} says {content}, reply it'
 
 def welcome_with(who: str):
     base = f'{who} come in, greet {who}'
@@ -258,9 +261,9 @@ async def social_task(ref_speaker_name):
         await asyncio.sleep(3)
 
 
-async def chat_task():
+async def chat_task(ref_speaker_name):
     while True:
-        await check_comment()
+        await check_comment(ref_speaker_name)
         await asyncio.sleep(3)
 
 
@@ -516,7 +519,7 @@ async def play_prepare(ref_speaker_name):
         t1 = asyncio.create_task(enter_task(ref_speaker_name))
         t2 = asyncio.create_task(social_task(ref_speaker_name))
         t3 = asyncio.create_task(broadcast_task())
-        t4 = asyncio.create_task(chat_task())
+        t4 = asyncio.create_task(chat_task(ref_speaker_name))
         prepare_tts_task = asyncio.create_task(list_prepare_tts_task())
         try:
             await asyncio.gather(t1, t2, t3, t4, prepare_tts_task)
