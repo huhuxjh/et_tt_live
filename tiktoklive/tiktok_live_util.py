@@ -516,10 +516,10 @@ async def play_prepare(ref_speaker_name):
         t1 = asyncio.create_task(enter_task(ref_speaker_name))
         t2 = asyncio.create_task(social_task(ref_speaker_name))
         t3 = asyncio.create_task(broadcast_task())
-        # t4 = asyncio.create_task(chat_task())
+        t4 = asyncio.create_task(chat_task())
         prepare_tts_task = asyncio.create_task(list_prepare_tts_task())
         try:
-            await asyncio.gather(t1, t2, t3, prepare_tts_task)
+            await asyncio.gather(t1, t2, t3, t4, prepare_tts_task)
         except asyncio.CancelledError:
             print("live mode: play_prepare")
     else:
