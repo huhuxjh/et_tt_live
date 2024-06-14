@@ -38,7 +38,7 @@ social_message_min_period = 50
 enter_message_min_period = 50
 
 last_play_effect_time = 0
-play_effect_period = 30
+play_effect_period = 45
 
 query_queue = queue.Queue()
 tts_queue = queue.Queue()
