@@ -38,7 +38,7 @@ social_message_min_period = 30
 enter_message_min_period = 30
 
 last_play_effect_time = 0
-play_effect_period = 120
+play_effect_period = 30
 
 query_queue = queue.Queue()
 tts_queue = queue.Queue()
@@ -54,25 +54,6 @@ obs_queue = []
 obs_wrapper = None
 
 local_video_dir = "D:\\video_res"
-
-enter_reply_list = [
-    'hello,',
-    'hi,',
-    'welcome to the living room,',
-]
-
-like_reply_list = [
-    'Appreciate the like❤️❤️❤️'
-]
-
-share_reply_list = [
-    'Appreciate the share❤️❤️❤️'
-]
-
-follow_reply_list = [
-    'Appreciate the follow'
-]
-
 
 async def list_prepare_tts_task():
     for _, val in enumerate(product_script.item_list):
@@ -422,7 +403,7 @@ def play_effect():
     current_time = time.time()
     if obs_wrapper and (current_time - last_play_effect_time) > play_effect_period :
         print(f"play_effect: {current_time}")
-        param = {"duration": 2.0, "scale": random.uniform(1.2, 1.4)}
+        param = {"duration": random.uniform(1.5,3.5), "scale": random.uniform(1.3, 1.7)}
         obs_wrapper.play_effect(OBS_MEDIA_VIDEO_EFFECT_2, param)
         last_play_effect_time = current_time
 
