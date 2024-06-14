@@ -404,3 +404,23 @@ if __name__ == "__main__":
         print("======================= video 进度：" + str(v1) + "," + str(v2))
         time.sleep(2)
         idx += 1
+        
+        
+        
+# from template_generator import ffmpeg as template_ffmpeg
+# for root, dirs, files in os.walk("D:\\video_res"):
+#     for file in files:
+#         # 检查文件扩展名是否匹配
+#         if any(file.lower().endswith(ext) for ext in ['.mp4', '.avi', '.mov']):
+#             src = os.path.join(root, file)
+#             dst = os.path.join(root, file.replace(".MOV", "_.MOV").replace(".mov", "_.mov"))
+#             template_ffmpeg.process([
+#                 "-i",
+#                 src,
+#                 "-metadata:s:v:0",
+#                 "rotate=0",
+#                 "-y",
+#                 dst
+#             ], "")
+#             os.remove(src)
+#             os.rename(dst, src)
