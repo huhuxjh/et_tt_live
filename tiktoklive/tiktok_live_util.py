@@ -34,8 +34,8 @@ last_enter_message = ""
 last_enter_message_time = 0
 last_social_message_time = 0
 
-social_message_min_period = 30
-enter_message_min_period = 30
+social_message_min_period = 50
+enter_message_min_period = 50
 
 last_play_effect_time = 0
 play_effect_period = 30
