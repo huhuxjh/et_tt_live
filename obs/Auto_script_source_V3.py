@@ -1,5 +1,4 @@
 import time,sys,os
-import keyboard
 from typing import Callable, Iterable, Union
 sys.path.append(os.path.dirname(__file__))
 import obsws_python as obs
@@ -32,6 +31,7 @@ OBS_MEDIA_VIDEO_NAME = "video"
 OBS_MEDIA_VIDEO_EFFECT_KIND = "filter-custom"
 OBS_MEDIA_VIDEO_EFFECT_1 = "ZoomIn"
 OBS_MEDIA_VIDEO_EFFECT_2 = "ZoomOutIn"
+OBS_MEDIA_VIDEO_EFFECT_3 = "ShakeShake"
 OBS_EFFECT_TYPE_SCENE = 0
 OBS_EFFECT_TYPE_SOURCE = 1
 class EventObserver:
@@ -361,7 +361,7 @@ if __name__ == "__main__":
     #obs 工具-》WebSocket服务器设置-》服务端端口，默认是4455，本地不开启身份认证
     # 脚本启动前，应把本地OBS的所有scene和source都配置好
     # 脚本目前只负责scene和source的切换和控制
-    scriptMgr = OBScriptManager(4455, 4455, "D:\\video_res", None, False)
+    scriptMgr = OBScriptManager(4455, 4455, "/Users/pengjun/Desktop/1/ttt", None, False)
     scriptMgr.start()
     print(scriptMgr.get_play_tag_list("discount_now"))
     idx = 0
@@ -375,7 +375,7 @@ if __name__ == "__main__":
             time.sleep(2)
             continue
             
-        tag = random.choice(["order_urging", "selling_point_1", "selling_point_3"])
+        tag = random.choice(["1003"])
         # if idx > 3:
         #     idx = 0
         # wav = ["D:\\audios\\tts_2_0.wav","D:\\audios\\tts_18_0.wav","D:\\audios\\tts_44_0.wav","D:\\audios\\tts_56_0.wav"][idx]
@@ -383,9 +383,18 @@ if __name__ == "__main__":
         # print("======================= audio " + wav)
         print("======================= video " + tag)
         scriptMgr.play_video(tag, None, video_callback)
-        scriptMgr.play_effect(OBS_MEDIA_VIDEO_EFFECT_2, {
-                "duration" : 4.0,
-                "scale" : random.uniform(2, 4)
+        # scriptMgr.play_effect(OBS_MEDIA_VIDEO_EFFECT_2, {
+        #         "duration" : random.uniform(0.5, 2.5),
+        #         "scale" : random.uniform(1.1, 2.5),
+        #         "xOffset" : random.uniform(0.0, 1.0),
+        #         "yOffset" : random.uniform(0.0, 1.0),
+        # })
+        scriptMgr.play_effect(OBS_MEDIA_VIDEO_EFFECT_3, {
+                "duration" : random.uniform(0.5, 1.0),
+                "scale" : random.uniform(0.1, 0.1),
+                "xOffset" : random.uniform(0.03, 0.06),
+                "yOffset" : random.uniform(0.01, 0.03),
+                "freq": random.uniform(2.0, 8.0),
         })
         # scriptMgr.play_audio(wav, audio_callback)
         time.sleep(2)

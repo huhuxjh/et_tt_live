@@ -1,8 +1,12 @@
 #pragma scale 0.1, 32, 0.1
 #pragma duration 0.1, 32, 0.1
+#pragma xOffset -1.0, 1.0, 0.01
+#pragma yOffset 1.0, 1.0, 0.01
 
 uniform float scale = 2.0;
-uniform float duration = 3.0;
+uniform float xOffset = 0.2;
+uniform float yOffset = 0.2;
+uniform float duration = 1.0;
 sampler_state def_sampler {
 	Filter   = Linear;
 	AddressU = Repeat;
@@ -12,5 +16,6 @@ float4 mainImage(VertData v_in) : TARGET
 {
 	float progress = clamp(iTime / duration, 0.0, 1.0);
 	float curScale = lerp(1.0, 1.0 / scale, sin(progress * 3.1415926));
-	return image.Sample(def_sampler, (v_in.uv - float2(0.5,0.5)) * float2(curScale, curScale) + float2(0.5,0.5));
+	float2 center = lerp(float2(xOffset, yOffset), float2(0.5, 0.5), progress); 
+	return image.Sample(def_sampler, (v_in.uv - center) * float2(curScale, curScale) + center);
 }

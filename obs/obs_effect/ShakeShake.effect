@@ -1,0 +1,40 @@
+#pragma scale 0.1, 32, 0.1
+#pragma duration 0.1, 32, 0.1
+#pragma xOffset -1.0, 1.0, 0.01
+#pragma yOffset -1.0, 1.0, 0.01
+
+uniform float scale = 0.01;
+uniform float freq = 4.0;
+uniform float xOffset = 0.03;
+uniform float yOffset = 0.00;
+uniform float duration = 1.0;
+sampler_state def_sampler {
+    Filter   = Linear;
+    AddressU = Repeat;
+    AddressV = Repeat;
+};
+
+float random(float2 uv) {
+    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+float4 mainImage(VertData v_in) : TARGET
+{
+	float isrun = iTime > duration ? 0.0 : 1.0;
+	float progress = clamp(iTime / duration, 0.0, 1.0);
+
+	float xyOffset = scale;
+	float curScale = 1.0 - scale*2.0;
+    
+	float jitterAmplitudeX = xOffset * (1.0 - progress);
+    float jitterX = jitterAmplitudeX * sin(iTime * -freq * 3.1415926) * isrun;
+	float jitterAmplitudeY = yOffset/10.0 * (1.0 - progress);
+	float jitterY = jitterAmplitudeY * sin(iTime * -freq * 3.1415926) * isrun;
+
+
+    float2 uv = v_in.uv;
+    uv.x += jitterX;
+	uv.y += jitterY;
+
+    return image.Sample(def_sampler, uv * float2(curScale, curScale) + float2(xyOffset, xyOffset));
+}
