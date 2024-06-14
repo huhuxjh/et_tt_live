@@ -34,11 +34,11 @@ last_enter_message = ""
 last_enter_message_time = 0
 last_social_message_time = 0
 
-social_message_min_period = 30
-enter_message_min_period = 30
+social_message_min_period = 50
+enter_message_min_period = 50
 
 last_play_effect_time = 0
-play_effect_period = 30
+play_effect_period = 45
 
 query_queue = queue.Queue()
 tts_queue = queue.Queue()
@@ -173,7 +173,7 @@ def liked_with(who: str):
     return base
 
 def followed_with(who: str):
-    base = f'{who} followed the live stream, thanks to {who}'
+    base = f'{who} subscribed the live stream, thanks to {who}'
     return base
 
 def shared_with(who: str):
@@ -403,7 +403,7 @@ def play_effect():
     current_time = time.time()
     if obs_wrapper and (current_time - last_play_effect_time) > play_effect_period :
         print(f"play_effect: {current_time}")
-        param = {"duration": random.uniform(1.5,3.5), "scale": random.uniform(1.3, 1.7)}
+        param = {"duration": random.uniform(1.0, 1.5), "scale": random.uniform(1.3, 1.7)}
         obs_wrapper.play_effect(OBS_MEDIA_VIDEO_EFFECT_2, param)
         last_play_effect_time = current_time
 
