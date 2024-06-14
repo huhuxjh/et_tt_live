@@ -38,7 +38,7 @@ social_message_min_period = 50
 enter_message_min_period = 50
 
 last_play_effect_time = 0
-play_effect_period = 45
+play_effect_period = 30
 
 query_queue = queue.Queue()
 tts_queue = queue.Queue()
@@ -385,6 +385,7 @@ def play_audio(callback):
 
 def play_video(callback):
     global obs_queue
+    global beginVideo
     print(f"try play_obs, obs_queue:{len(obs_queue)}")
     if len(obs_queue) == 0:
         return False
@@ -394,18 +395,32 @@ def play_video(callback):
     print(f"play_obs obs_item_wrapper:{obs_item_wrapper.obs_item['duration']}")
     if obs_wrapper:
         print(str(time.time()) + "=========== play " + obs_item_wrapper.obs_item["path"])
+        beginVideo = True
+        play_effect()
         return obs_wrapper.play_video(obs_item_wrapper.label, obs_item_wrapper.obs_item["path"], callback=callback)
     return False
 
 
+# 转场
 def play_effect():
-    global play_effect_period, last_play_effect_time
-    current_time = time.time()
-    if obs_wrapper and (current_time - last_play_effect_time) > play_effect_period :
-        print(f"play_effect: {current_time}")
-        param = {"duration": random.uniform(1.0, 1.5), "scale": random.uniform(1.3, 1.7)}
+    if obs_wrapper:
+        print(f"play_effect:")
+        param = {"duration": random.uniform(0.5, 2.5), "scale": random.uniform(1.2, 2.0), "xOffset": random.uniform(-0.2, 0.2), "yOffset" : random.uniform(-0.2, 0.2)}
         obs_wrapper.play_effect(OBS_MEDIA_VIDEO_EFFECT_2, param)
-        last_play_effect_time = current_time
+
+
+# 随机播
+def play_effect3():
+    global play_effect_period, last_play_effect_time
+    current_time = time.time()        
+    if obs_wrapper and (current_time - last_play_effect_time) > play_effect_period :
+        param = {"duration" : random.uniform(0.5, 1.0),
+                "scale" : random.uniform(0.1, 0.1),
+                "xOffset" : random.uniform(0.03, 0.06),
+                "yOffset" : random.uniform(0.01, 0.03),
+                "freq": random.uniform(2.0, 8.0),}
+        obs_wrapper.play_effect(OBS_MEDIA_VIDEO_EFFECT_3, param)
+        play_effect_period = random.randrange(20, 40)
 
 
 def in_recent_play_queue(path):
@@ -596,7 +611,7 @@ def play_wav_cycle():
                     if v2 == 0 or (v2 - v1) == 0:
                         play_video(None)
 
-                    play_effect()
+                    play_effect3()
                 else:
                     play_audio(None)
             except soundfile.LibsndfileError as ignore:
