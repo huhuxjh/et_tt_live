@@ -110,13 +110,17 @@ class Script:
         my_item = self.item_list[item.index-1]
         if my_item.index == item.index:
             my_item.wav = item.wav
+        # 缓存更新
+        self.commit()
 
     def commit(self):
-        audio_list = [item.wav for item in self.item_list if item.wav != '' and os.path.exists(item.wav)]
         base_dir = os.path.dirname(self._config_path_)
-        for audio in audio_list:
-            name = os.path.basename(audio)
-            shutil.copy(audio, os.path.join(base_dir, name))
+        for item in self.item_list:
+            if item.wav != '' and os.path.exists(item.wav):
+                name = os.path.basename(item.wav)
+                cp_file = os.path.join(base_dir, name)
+                if not os.path.exists(cp_file):
+                    shutil.copy(item.wav, cp_file)
         # 更新缓存文件
         self.to_file(self._config_path_)
 
