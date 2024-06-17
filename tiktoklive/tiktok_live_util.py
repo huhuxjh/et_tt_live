@@ -2,6 +2,7 @@ import asyncio
 import os
 import queue
 import random
+import re
 import shutil
 import sys
 import threading
@@ -187,10 +188,13 @@ def shared_with(who: str):
 async def llm_query_for_active(query, ref_speaker_name):
     global product_script
     context = product_script.context
+    # 在互动过程中，query就是指令
+    # 在脚本过程中，query只是内容，sys_inst是指令
     sys_inst = product_script.sys_inst
     role_play = product_script.role_play
+    max_num_sentence = 2
     with timer('qa-llama_v3'):
-        an = await llm_async(query, role_play, context, sys_inst, 2, 1.05)
+        an = await llm_async('', role_play, context, query, max_num_sentence, 1.05)
     print(f"llm_query_for_active an:{an}")
     ref_speaker = os.path.join(resources, ref_speaker_name)
     # 参考音频
@@ -284,12 +288,13 @@ async def llm_query(content_item):
     context = product_script.context
     sys_inst = product_script.sys_inst
     role_play = product_script.role_play
+    max_num_sentence = 3
     tts_directly = content_item.llm_infer == 0
     with timer('qa-llama_v3'):
         if tts_directly:
             an = query
         else:
-            an = await llm_async(query, role_play, context, sys_inst, 3, 1.05)
+            an = await llm_async(query, role_play, context, sys_inst, max_num_sentence, 1.05)
     # 重新打包
     new_content_item = content_item.copy(text=an)
     query_queue.put(new_content_item)

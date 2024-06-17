@@ -13,6 +13,7 @@ if __name__ == '__main__':
     config_src_range = 'B1:B10'
     obs_video_port = 4455
     obs_audio_port = 4455
+    run_mode = 0
     # run_mode
     # 0: live 实时生成
     # 1: prepare 直播前准备 
