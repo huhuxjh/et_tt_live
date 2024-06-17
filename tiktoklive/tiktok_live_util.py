@@ -192,7 +192,7 @@ async def llm_query_for_active(query, ref_speaker_name):
     # 在脚本过程中，query只是内容，sys_inst是指令
     sys_inst = product_script.sys_inst
     role_play = product_script.role_play
-    max_num_sentence = 2
+    max_num_sentence = 8
     with timer('qa-llama_v3'):
         an = await llm_async('', role_play, context, query, max_num_sentence, 1.05)
     print(f"llm_query_for_active an:{an}")
@@ -288,7 +288,7 @@ async def llm_query(content_item):
     context = product_script.context
     sys_inst = product_script.sys_inst
     role_play = product_script.role_play
-    max_num_sentence = 3
+    max_num_sentence = 16
     tts_directly = content_item.llm_infer == 0
     with timer('qa-llama_v3'):
         if tts_directly:
