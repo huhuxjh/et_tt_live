@@ -116,7 +116,7 @@ async def check_social(ref_speaker_name):
     except Exception:
         return
     # 分享： "shared the LIVE video"
-    # 关注： "followed the host"
+    # 关注： "followed the host"result
     # 点赞： todo
     if social_owner_name + social_text != last_social_message:
         print(f"social {social_owner_name} -> {social_text}")
@@ -295,6 +295,8 @@ async def llm_query(content_item):
             an = query
         else:
             an = await llm_async(query, role_play, context, sys_inst, max_num_sentence, 1.05)
+            matches = re.findall(r'{(.*?)}', an)
+            if matches: an = matches[0]
     # 重新打包
     new_content_item = content_item.copy(text=an)
     query_queue.put(new_content_item)
