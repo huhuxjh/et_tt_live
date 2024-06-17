@@ -87,7 +87,26 @@ class EventObserver:
             if item['sourceName'] == OBS_MEDIA_WAV_NAME:
                 self._request.set_scene_item_enabled(self._curScene, item['sceneItemId'], True)
                 self._request.trigger_media_input_action(OBS_MEDIA_WAV_NAME, OBS_WEBSOCKET_MEDIA_INPUT_ACTION_RESTART)
-
+        # 视频创建时一次性加载_effect_dir下所有的自定义的特效
+        if self._effect_dir is not None and os.path.isdir(self._effect_dir):
+            all_effects = os.listdir(self._effect_dir)
+            filterObject = self._curScene if self._effectType == OBS_EFFECT_TYPE_SCENE else key
+            response = self._request.get_source_filter_list(self._curScene)
+            addedFilters = []
+            if response is not None and response.filters is not None:
+                for filter in response.filters:
+                    addedFilters.append(filter['filterName'])
+            for effect in all_effects:
+                if os.path.isfile(os.path.join(self._effect_dir, effect)) and os.path.join(self._effect_dir,
+                                                                                           effect).lower().endswith(
+                        '.effect'):
+                    name = Path(effect).stem
+                    if name not in addedFilters:
+                        self._request.create_source_filter(filterObject, name, OBS_MEDIA_VIDEO_EFFECT_KIND, {
+                            'effect_path': os.path.join(self._effect_dir, effect),
+                            "iTime": 999.0
+                        })
+                    self._effects.append(name)
     def stop(self):
         self._event.disconnect()
         self._request.disconnect()
@@ -121,24 +140,6 @@ class EventObserver:
                 'smoothness':88,
                 'spill':10
             })
-        # 视频创建时一次性加载_effect_dir下所有的自定义的特效
-        if self._effect_dir is not None and os.path.isdir(self._effect_dir):
-            all_effects = os.listdir(self._effect_dir)
-            filterObject = self._curScene if self._effectType == OBS_EFFECT_TYPE_SCENE else key
-            response = self._request.get_source_filter_list(self._curScene)
-            addedFilters = []
-            if response is not None and response.filters is not None:
-                for filter in response.filters:
-                    addedFilters.append(filter['filterName'])
-            for effect in all_effects:
-                if os.path.isfile(os.path.join(self._effect_dir, effect)) and os.path.join(self._effect_dir, effect).lower().endswith('.effect'):
-                    name = Path(effect).stem
-                    if name not in addedFilters:
-                        self._request.create_source_filter(filterObject, name, OBS_MEDIA_VIDEO_EFFECT_KIND, {
-                            'effect_path': os.path.join(self._effect_dir, effect),
-                            "iTime" : 999.0
-                        })
-                    self._effects.append(name)
         self._sceneLayers = self._request.get_scene_item_list(self._curScene).scene_items
     
     def update_input(self, key, mp4):
@@ -292,9 +293,9 @@ class OBScriptManager :
             #     "scale" : random.uniform(0.3, 0.5) 特效的额外的输入参数，不配置就用.effect定义的默认值
             # }
     def play_effect(self, effect, params):
-        if effect in self._video_observer._effects:
+        if effect in self._audio_observer._effects:
             params["iTime"] = 0.0
-            self._video_observer._request.set_source_filter_settings(self._video_observer._curScene if self._video_observer._effectType == OBS_EFFECT_TYPE_SCENE else self._curPlayingVideo, effect, params, True)
+            self._audio_observer._request.set_source_filter_settings(self._audio_observer._curScene if self._audio_observer._effectType == OBS_EFFECT_TYPE_SCENE else self._curPlayingVideo, effect, params, True)
     
     def play_video(self, tag, mp4=None, callback=None):
         print("[OBS-Control] play tag "+ tag)
@@ -356,7 +357,7 @@ class OBScriptManager :
 
     def is_playing(self) :
         return len(self._video_observer._playingSources) > 0
-    
+
 if __name__ == "__main__":
     #obs 工具-》WebSocket服务器设置-》服务端端口，默认是4455，本地不开启身份认证
     # 脚本启动前，应把本地OBS的所有scene和source都配置好
@@ -374,7 +375,7 @@ if __name__ == "__main__":
             print("======================= 上一个未播完，等待下一次")
             time.sleep(2)
             continue
-            
+
         tag = random.choice(["1003"])
         # if idx > 3:
         #     idx = 0
@@ -406,21 +407,25 @@ if __name__ == "__main__":
         idx += 1
         
         
-        
+#
 # from template_generator import ffmpeg as template_ffmpeg
 # for root, dirs, files in os.walk("D:\\video_res"):
 #     for file in files:
-#         # 检查文件扩展名是否匹配
-#         if any(file.lower().endswith(ext) for ext in ['.mp4', '.avi', '.mov']):
-#             src = os.path.join(root, file)
-#             dst = os.path.join(root, file.replace(".MOV", "_.MOV").replace(".mov", "_.mov"))
-#             template_ffmpeg.process([
-#                 "-i",
-#                 src,
-#                 "-metadata:s:v:0",
-#                 "rotate=0",
-#                 "-y",
-#                 dst
-#             ], "")
-#             os.remove(src)
-#             os.rename(dst, src)
+#         if "selling_point_2" in root or "selling_point_3" in root or "selling_point_4" in root or "welcome" in root:
+#             # 检查文件扩展名是否匹配
+#             if any(file.lower().endswith(ext) for ext in ['.mp4', '.avi', '.mov']):
+#                 try:
+#                     src = os.path.join(root, file)
+#                     dst = os.path.join(root, file.replace(".MOV", "_.MOV").replace(".mov", "_.mov"))
+#                     template_ffmpeg.process([
+#                         "-i",
+#                         src,
+#                         "-metadata:s:v:0",
+#                         "rotate=0",
+#                         "-y",
+#                         dst
+#                     ], "")
+#                     os.remove(src)
+#                     os.rename(dst, src)
+#                 except:
+#                     pass

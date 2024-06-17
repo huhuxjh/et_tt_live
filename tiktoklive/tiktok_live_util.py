@@ -39,7 +39,6 @@ social_message_min_period = 50
 enter_message_min_period = 50
 
 last_play_effect_time = 0
-play_effect_period = 30
 
 query_queue = queue.Queue()
 tts_queue = queue.Queue()
@@ -73,14 +72,19 @@ async def check_comment(ref_speaker_name):
     global last_chat_message
     # 获取普通聊天List
     try:
+        print(f"check_comment")
+
         chat_message_list = du.find_css_elements('div[data-e2e="chat-message"]')
         # 获取最近的一条chat_message
         chat_message = chat_message_list[-1]
+        print(f"check_comment chat_message:{chat_message}")
+
         if chat_message is None:
             return
         # 获取message中的owner_name 和 comment
         owner_name = chat_message.find_element(by=By.CSS_SELECTOR, value='span[data-e2e="message-owner-name"]').text
         comment = chat_message.find_element(by=By.CSS_SELECTOR, value='div.tiktok-1kue6t3-DivComment').text
+        print(f" check_comment live room comment:{comment}")
     except Exception:
         return
     if owner_name + comment != last_chat_message:
@@ -409,27 +413,41 @@ def play_video(callback):
     return False
 
 
+
 # 转场
 def play_effect():
     if obs_wrapper:
-        print(f"play_effect:")
-        param = {"duration": random.uniform(0.5, 2.5), "scale": random.uniform(1.2, 2.0), "xOffset": random.uniform(-0.2, 0.2), "yOffset" : random.uniform(-0.2, 0.2)}
-        obs_wrapper.play_effect(OBS_MEDIA_VIDEO_EFFECT_2, param)
+        index = random.randrange(1, 3)
+        if index == 1:
+            print(f"play_effect:")
+            param = {"duration": random.uniform(3, 4), "scale": random.uniform(1.2, 1.5), "xOffset": random.uniform(0.4, 0.6), "yOffset" : random.uniform(0.4, 0.6)}
+            obs_wrapper.play_effect(OBS_MEDIA_VIDEO_EFFECT_2, param)
+        elif index == 2:
+            print("====================  OBS_MEDIA_VIDEO_EFFECT_3")
+            param = {"duration": random.uniform(0.5, 1.0),
+                     "scale": random.uniform(0.1, 0.1),
+                     "xOffset": random.uniform(0.03, 0.06),
+                     "yOffset": random.uniform(0.01, 0.03),
+                     "freq": random.uniform(2.0, 8.0), }
+            obs_wrapper.play_effect(OBS_MEDIA_VIDEO_EFFECT_3, param)
 
 
 # 随机播
+play_effect_period = 10
 def play_effect3():
+    print("====================")
     global play_effect_period, last_play_effect_time
-    current_time = time.time()        
+    current_time = time.time()
     if obs_wrapper and (current_time - last_play_effect_time) > play_effect_period :
+        print("====================  play_effect3")
         param = {"duration" : random.uniform(0.5, 1.0),
                 "scale" : random.uniform(0.1, 0.1),
                 "xOffset" : random.uniform(0.03, 0.06),
                 "yOffset" : random.uniform(0.01, 0.03),
                 "freq": random.uniform(2.0, 8.0),}
         obs_wrapper.play_effect(OBS_MEDIA_VIDEO_EFFECT_3, param)
-        play_effect_period = random.randrange(20, 40)
-
+        play_effect_period = random.randrange(8, 10)
+        last_play_effect_time = current_time
 
 def in_recent_play_queue(path):
     for element in last_obs_queue:
@@ -620,11 +638,12 @@ def play_wav_cycle():
                         play_video(None)
 
                     play_effect3()
+
                 else:
                     play_audio(None)
             except soundfile.LibsndfileError as ignore:
                 print(ignore)
-            time.sleep(0.1)
+            time.sleep(random.uniform(0.5, 4))
 
     thread = threading.Thread(target=worker)
     thread.start()
