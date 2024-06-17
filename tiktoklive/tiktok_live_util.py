@@ -55,6 +55,7 @@ obs_wrapper = None
 
 local_video_dir = "D:\\video_res"
 
+
 async def list_prepare_tts_task():
     for _, val in enumerate(product_script.item_list):
         # wav = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{val.index}_{device_index}.wav')
@@ -83,9 +84,11 @@ async def check_comment(ref_speaker_name):
             return
         # 获取message中的owner_name 和 comment
         owner_name = chat_message.find_element(by=By.CSS_SELECTOR, value='span[data-e2e="message-owner-name"]').text
-        comment = chat_message.find_element(by=By.CSS_SELECTOR, value='div.tiktok-1kue6t3-DivComment').text
+        comment = chat_message.find_element(by=By.CSS_SELECTOR, value='div.css-1kue6t3-DivComment').text
         print(f" check_comment live room comment:{comment}")
-    except Exception:
+    except Exception as e:
+        print(f"check_comment exception:{e}")
+
         return
     if owner_name + comment != last_chat_message:
         print(f"chat {owner_name} -> {comment}")
@@ -169,24 +172,31 @@ async def check_enter(ref_speaker_name):
         # await send_message(f'{enter_reply} {enter_owner_name}')
         # todo: llm and createTTS and put to urgent_queue
 
+
 def chat_with(who: str, content: str):
     base = f'{who} says {content}, reply it'
+    return base
+
 
 def welcome_with(who: str):
     base = f'{who} come in, greet {who}'
     return base
 
+
 def liked_with(who: str):
     base = f'{who} liked the live stream, thanks to {who}'
     return base
+
 
 def followed_with(who: str):
     base = f'{who} subscribed the live stream, thanks to {who}'
     return base
 
+
 def shared_with(who: str):
     base = f'{who} shared the live stream, thanks to {who}'
     return base
+
 
 # 互动的llm查询
 async def llm_query_for_active(query, ref_speaker_name):
@@ -198,7 +208,7 @@ async def llm_query_for_active(query, ref_speaker_name):
     role_play = product_script.role_play
     max_num_sentence = 8
     with timer('qa-llama_v3'):
-        an = await llm_async('', role_play, context, query, max_num_sentence, 1.05)
+        an = await llm_async(query, role_play, context, sys_inst, max_num_sentence, 1.05)
     print(f"llm_query_for_active an:{an}")
     ref_speaker = os.path.join(resources, ref_speaker_name)
     # 参考音频
@@ -226,13 +236,12 @@ async def llm_query_for_active(query, ref_speaker_name):
         urgent_tts_queue.put(out)
 
 
-
 async def send_message(content):
     try:
         du.input_value_by_css('div[data-e2e="comment-text"]', content)
         await asyncio.sleep(0.5)
         sendButton = du.find_css_element('div[data-e2e="comment-post"]')
-        du.click_by_element(sendButton)
+        # du.click_by_element(sendButton)
     except Exception:
         print("send_message error")
         return
@@ -413,14 +422,14 @@ def play_video(callback):
     return False
 
 
-
 # 转场
 def play_effect():
     if obs_wrapper:
         index = random.randrange(1, 3)
         if index == 1:
             print(f"play_effect:")
-            param = {"duration": random.uniform(3, 4), "scale": random.uniform(1.2, 1.5), "xOffset": random.uniform(0.4, 0.6), "yOffset" : random.uniform(0.4, 0.6)}
+            param = {"duration": random.uniform(3, 4), "scale": random.uniform(1.2, 1.5),
+                     "xOffset": random.uniform(0.4, 0.6), "yOffset": random.uniform(0.4, 0.6)}
             obs_wrapper.play_effect(OBS_MEDIA_VIDEO_EFFECT_2, param)
         elif index == 2:
             print("====================  OBS_MEDIA_VIDEO_EFFECT_3")
@@ -434,20 +443,23 @@ def play_effect():
 
 # 随机播
 play_effect_period = 10
+
+
 def play_effect3():
     print("====================")
     global play_effect_period, last_play_effect_time
     current_time = time.time()
-    if obs_wrapper and (current_time - last_play_effect_time) > play_effect_period :
+    if obs_wrapper and (current_time - last_play_effect_time) > play_effect_period:
         print("====================  play_effect3")
-        param = {"duration" : random.uniform(0.5, 1.0),
-                "scale" : random.uniform(0.1, 0.1),
-                "xOffset" : random.uniform(0.03, 0.06),
-                "yOffset" : random.uniform(0.01, 0.03),
-                "freq": random.uniform(2.0, 8.0),}
+        param = {"duration": random.uniform(0.5, 1.0),
+                 "scale": random.uniform(0.1, 0.1),
+                 "xOffset": random.uniform(0.03, 0.06),
+                 "yOffset": random.uniform(0.01, 0.03),
+                 "freq": random.uniform(2.0, 8.0), }
         obs_wrapper.play_effect(OBS_MEDIA_VIDEO_EFFECT_3, param)
         play_effect_period = random.randrange(8, 10)
         last_play_effect_time = current_time
+
 
 def in_recent_play_queue(path):
     for element in last_obs_queue:
@@ -556,22 +568,21 @@ async def play_prepare(ref_speaker_name):
             print("live mode: play_prepare")
 
 
-
 async def live(ref_speaker_name):
     print("live mode: live start")
     global interactive_enable
-    global llm_task, tts_task, enter, social
+    global llm_task, tts_task, enter, social, broadcast, chat
     if interactive_enable:
         enter = asyncio.create_task(enter_task(ref_speaker_name))
         social = asyncio.create_task(social_task(ref_speaker_name))
-        # t3 = asyncio.create_task(broadcast_task())
-        # t4 = asyncio.create_task(chat_task())
+        broadcast = asyncio.create_task(broadcast_task())
+        chat = asyncio.create_task(chat_task(ref_speaker_name))
     llm_task = asyncio.create_task(llm_query_task())
     tts_task = asyncio.create_task(create_tts_task(ref_speaker_name))
     try:
         if interactive_enable:
-            await asyncio.gather(llm_task, tts_task, enter, social)
-        else :
+            await asyncio.gather(llm_task, tts_task, enter, social, broadcast, chat)
+        else:
             await asyncio.gather(llm_task, tts_task)
     except asyncio.CancelledError:
         print("live mode: live end")
@@ -585,7 +596,8 @@ def is_play_prepare():
     return live_mode == 2
 
 
-def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_video_port,obs_audio_port, mode, configId, interactive):
+def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_video_port, obs_audio_port, mode, configId,
+                interactive):
     global obs_wrapper
     global du, script_scenes, product_script, device_index, live_mode, config_id, interactive_enable
     script_scenes = scenes
@@ -595,7 +607,7 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_vid
     config_id = configId
     interactive_enable = interactive
     if interactive_enable:
-        driver,_ = chrome_utils.get_driver(browserId)
+        driver, _ = chrome_utils.get_driver(browserId)
         if driver:
             du = driver_utils.DriverUtils(driver)
 
@@ -608,13 +620,13 @@ def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_vid
         asyncio.run(prepare(ref_speaker_name))
     elif is_play_prepare():
         if obs_video_port > 0:
-            obs_wrapper = OBScriptManager(obs_video_port,obs_audio_port, local_video_dir)
+            obs_wrapper = OBScriptManager(obs_video_port, obs_audio_port, local_video_dir)
             obs_wrapper.start()
         audio_thread = play_wav_cycle()
         asyncio.run(play_prepare(ref_speaker_name))
     else:
         if obs_video_port > 0:
-            obs_wrapper = OBScriptManager(obs_video_port,obs_audio_port, local_video_dir)
+            obs_wrapper = OBScriptManager(obs_video_port, obs_audio_port, local_video_dir)
             obs_wrapper.start()
         audio_thread = play_wav_cycle()
         asyncio.run(live(ref_speaker_name))
