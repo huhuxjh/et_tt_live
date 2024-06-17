@@ -295,8 +295,6 @@ async def llm_query(content_item):
             an = query
         else:
             an = await llm_async(query, role_play, context, sys_inst, max_num_sentence, 1.05)
-            matches = re.findall(r'{(.*?)}', an)
-            if matches: an = matches[0]
     # 重新打包
     new_content_item = content_item.copy(text=an)
     query_queue.put(new_content_item)

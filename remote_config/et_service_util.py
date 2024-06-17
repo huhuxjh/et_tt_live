@@ -1,3 +1,4 @@
+import re
 import uuid
 
 import requests
@@ -40,7 +41,13 @@ async def llm_async(query, role_play, context, inst_text, max_num_sentence, repe
     }
     response = await post_retry(url, headers, data)
     resp_json = json.loads(response.text)
-    return resp_json['text']
+    resp_text = resp_json['text']
+    # 只匹配返回括号包含的内容
+    matches = re.findall(r'{(.*?)}', resp_text)
+    if matches:
+        return matches[0]
+    else:
+        return resp_text
 
 
 async def tts_async(text, ref_name, out_name, spc_type, language="english"):
