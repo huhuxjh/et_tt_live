@@ -71,8 +71,8 @@ async def tts_async(text, ref_name, out_name, spc_type, language="english"):
         "spc_type": spc_type,
         "ref_name": ref_name,
         "manual_seed": 8,       # 1~22是预设音色
-        "refine_prompt": "[oral_7][laugh_1][break_2]",
-        "infer_prompt": "[speed_6]",
+        "refine_prompt": "[oral_2][laugh_0][break_4]",
+        "infer_prompt": "[speed_4]",
         "skip_refine_text": False
     }
     response = await post_retry(url, headers, data)
