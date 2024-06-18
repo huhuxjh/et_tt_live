@@ -31,6 +31,7 @@ async def llm_async(query, role_play, context, inst_text, max_num_sentence, repe
     data = {
         "et_uuid": _ET_UUID_,
         "language": language,
+        "use_history": False,   # 必须false，要不词频越来越低，到最后胡言乱语
         "query": query,
         "role_play": role_play,
         "context": context,
@@ -45,7 +46,8 @@ async def llm_async(query, role_play, context, inst_text, max_num_sentence, repe
     # 只匹配返回括号包含的内容
     matches = re.findall(r'{(.*?)}', resp_text)
     if matches:
-        return matches[0]
+        text = re.sub(r'^Here(.*)revised(.*):$', '', matches[0])
+        return text
     else:
         return resp_text
 
