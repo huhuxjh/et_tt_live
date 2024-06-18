@@ -48,6 +48,8 @@ async def llm_async(query, role_play, context, inst_text, max_num_sentence, repe
     text = matches[0] if matches else resp_text
     # 结果处理
     text = re.sub(r'^Here(.*)revised(.*):', '', text)
+    text = re.sub(r'^Revised(.*):', '', text)
+    text = text.strip('"')
     return text
 
 
