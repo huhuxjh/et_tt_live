@@ -45,11 +45,10 @@ async def llm_async(query, role_play, context, inst_text, max_num_sentence, repe
     resp_text = resp_json['text']
     # 只匹配返回括号包含的内容
     matches = re.findall(r'{(.*?)}', resp_text)
-    if matches:
-        text = re.sub(r'^Here(.*)revised(.*):$', '', matches[0])
-        return text
-    else:
-        return resp_text
+    text = matches[0] if matches else resp_text
+    # 结果处理
+    text = re.sub(r'^Here(.*)revised(.*):', '', text)
+    return text
 
 
 async def tts_async(text, ref_name, out_name, spc_type, language="english"):
