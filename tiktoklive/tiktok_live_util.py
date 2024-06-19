@@ -324,7 +324,7 @@ async def create_tts(content_item):
     # todo: 配置传入
     # todo: tts 生成的名字，现在的idx仍然可能重复
     print(f"create_tts: {content_item.index}")
-    ref_speaker = os.path.join(resources, script_config.ref_speaker_name)
+    ref_speaker = os.path.join(resources, script_config.ref_speaker)
     # 参考音频
     ref_audios = [ref_speaker]
     for idx, audio in enumerate(ref_audios):
@@ -527,25 +527,21 @@ def drive_video(wav, label):
 
 async def play_prepare():
     print("live mode: play_prepare")
-    global prepare_tts_task
+    global prepare_tts_task, tts_task_all_time, t1, t2, t3, t4
     if interactive_enable:
         t1 = asyncio.create_task(enter_task())
         t2 = asyncio.create_task(social_task())
         t3 = asyncio.create_task(broadcast_task())
         t4 = asyncio.create_task(chat_task())
-        prepare_tts_task = asyncio.create_task(list_prepare_tts_task())
-        tts_task_all_time = asyncio.create_task(create_tts_task_all_time())
-        try:
-            await asyncio.gather(t1, t2, t3, t4, prepare_tts_task, tts_task_all_time)
-        except asyncio.CancelledError:
-            print("live mode: play_prepare")
-    else:
-        prepare_tts_task = asyncio.create_task(list_prepare_tts_task())
-        tts_task_all_time = asyncio.create_task(create_tts_task_all_time())
-        try:
+    prepare_tts_task = asyncio.create_task(list_prepare_tts_task())
+    tts_task_all_time = asyncio.create_task(create_tts_task_all_time())
+    try:
+        if interactive_enable:
+            await asyncio.gather(prepare_tts_task, tts_task_all_time, t1, t2, t3, t4)
+        else:
             await asyncio.gather(prepare_tts_task, tts_task_all_time)
-        except asyncio.CancelledError:
-            print("live mode: play_prepare")
+    except asyncio.CancelledError:
+        print("live mode: play_prepare")
 
 
 async def live():
@@ -557,6 +553,8 @@ async def live():
         social = asyncio.create_task(social_task())
         broadcast = asyncio.create_task(broadcast_task())
         chat = asyncio.create_task(chat_task())
+    llm_task = asyncio.create_task(llm_query_task())
+    tts_task = asyncio.create_task(create_tts_task())
     try:
         if interactive_enable:
             await asyncio.gather(llm_task, tts_task, enter, social, broadcast, chat)
