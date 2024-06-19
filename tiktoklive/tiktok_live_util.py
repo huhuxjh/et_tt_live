@@ -1,5 +1,6 @@
 import asyncio
 import os
+import random
 import shutil
 import sys
 import threading
@@ -42,6 +43,10 @@ last_play_effect_time = 0
 
 query_queue = queue.Queue()
 tts_queue = queue.Queue()
+
+# 公屏队列
+text_queue = queue.Queue()
+
 urgent_query_queue = queue.Queue(maxsize=10)
 urgent_tts_queue = queue.Queue(maxsize=10)
 
@@ -53,6 +58,14 @@ obs_queue = []
 obs_wrapper = None
 
 local_video_dir = "D:\\video_res"
+
+welcome_list = ["welcome", "hi", "hello, welcome to the live stream"]
+
+followed_list = ["Appreciate the followed","Appreciate the followed, thank you very much"]
+
+shared_list = ["Appreciate the shared", "Thank you for sharing the live stream"]
+
+
 
 
 async def list_prepare_tts_task():
@@ -126,13 +139,18 @@ async def check_social():
         last_social_message = social_owner_name + social_text
         last_social_message_time = current_timestamp
         if social_text.__contains__('shared the LIVE video'):
-            # share_reply = random.choice(share_reply_list)
-            # await send_message(share_reply)
-            await llm_query_for_active(promopt_util.shared_with(social_owner_name))
+            index = random.randrange(0, 1)
+            if index == 0:
+                await create_tts_for_active(f"{random.choice(shared_list)}, {social_owner_name}")
+            else:
+                text_queue.put(f"{random.choice(shared_list)}, {social_owner_name}")
+
         if social_text.__contains__('followed the host'):
-            # follow_reply = random.choice(follow_reply_list)
-            # await send_message(follow_reply)
-            await llm_query_for_active(promopt_util.followed_with(social_owner_name))
+            index = random.randrange(0, 1)
+            if index == 0:
+                await create_tts_for_active(f"{random.choice(followed_list)}, {social_owner_name}")
+            else:
+                text_queue.put(f"{random.choice(followed_list)}, {social_owner_name}")
 
 
 async def check_enter():
@@ -164,14 +182,15 @@ async def check_enter():
         print(f"join {enter_owner_name} -> {enter_text}")
         last_enter_message = enter_owner_name
         last_enter_message_time = current_timestamp
-        await llm_query_for_active(promopt_util.welcome_with(enter_owner_name))
-        # await send_message(f'{enter_reply} {enter_owner_name}')
-        # todo: llm and createTTS and put to urgent_queue
+        index = random.randrange(0,1)
+        if index == 0:
+            await create_tts_for_active(f"{random.choice(welcome_list)}, {enter_owner_name}")
+        else:
+            text_queue.put(f"{random.choice(welcome_list)}, {enter_owner_name}")
 
 
 # 互动的llm查询
 async def llm_query_for_active(query):
-    global product_script, script_config
     context = product_script.context
     # 在互动过程中，query就是指令
     # 在脚本过程中，query只是内容，sys_inst是指令
@@ -181,7 +200,10 @@ async def llm_query_for_active(query):
     with timer('qa-llama_v3'):
         an = await llm_async(query, role_play, context, sys_inst, max_num_sentence, 1.05)
     print(f"llm_query_for_active an:{an}")
-    ref_speaker = os.path.join(resources, script_config.ref_speaker_name)
+    await create_tts_for_active(an)
+
+async def create_tts_for_active(content):
+    ref_speaker = os.path.join(resources, script_config.ref_speaker)
     # 参考音频
     ref_audios = [ref_speaker]
     for idx, audio in enumerate(ref_audios):
@@ -199,7 +221,7 @@ async def llm_query_for_active(query):
     with timer('tts-local'):
         ref_name, _ = os.path.splitext(os.path.basename(random.choice(ref_audios)))
         output_name, _ = os.path.splitext(os.path.basename(out))
-        wav = await tts_async(an, ref_name, output_name, "chat_tts")
+        wav = await tts_async(content, ref_name, output_name, "ov_v2")
         wav = wav.replace('"', '')
         # 复制到本地
         shutil.copy(wav, out)
@@ -212,24 +234,27 @@ async def send_message(content):
         du.input_value_by_css('div[data-e2e="comment-text"]', content)
         await asyncio.sleep(0.5)
         sendButton = du.find_css_element('div[data-e2e="comment-post"]')
-        # du.click_by_element(sendButton)
+        du.click_by_element(sendButton)
     except Exception:
         print("send_message error")
         return
 
 
 async def broadcast_task():
+    print(f"script_scenes:{len(script_scenes)}")
     tasks = [asyncio.create_task(run_scene(scene)) for scene in script_scenes]
     await asyncio.gather(*tasks)
 
 
 async def run_scene(scene):
     """运行单个场景任务"""
+    print(f"run_scene scene.start_time: {scene.start_time}")
+
     await asyncio.sleep(scene.start_time)
     while True:
         # 计算下一次执行的时间
         print(f"assistant chat room content: {scene.content}")
-        await send_message(scene.content)
+        text_queue.put(scene.content)
         # 当cycle_time<=0 时，只播放一次
         if scene.cycle_time <= 0:
             return
@@ -247,6 +272,14 @@ async def social_task():
     while True:
         await check_social()
         await asyncio.sleep(3)
+
+async def send_message_task():
+    while True:
+        print(f"send_message_task check: text_queue.size ={text_queue.qsize()}")
+        if not text_queue.empty():
+            message = text_queue.get()
+            await send_message(message)
+        await asyncio.sleep(1)
 
 
 async def chat_task():
@@ -290,7 +323,7 @@ async def create_tts_task():
 
 
 async def create_tts_task_for_preload():
-    print("create_tts_task_all_time")
+    print("create_tts_task_for_preload")
     global preload_product
     while True:
         if not query_queue.empty():
@@ -517,13 +550,14 @@ async def play_prepare():
             t5 = asyncio.create_task(switch_script())
             t6 = asyncio.create_task(list_prepare_tts_task())
             t7 = asyncio.create_task(create_tts_task_for_preload())
-            await asyncio.gather(t6, t7)
+            t8 = asyncio.create_task(send_message_task())
+            await asyncio.gather(t0,t1,t2,t3,t4,t5,t6,t7,t8)
         else:
             t4 = asyncio.create_task(retrieve_live_script())
             t5 = asyncio.create_task(switch_script())
             t6 = asyncio.create_task(list_prepare_tts_task())
             t7 = asyncio.create_task(create_tts_task_for_preload())
-            await asyncio.gather(t6, t7)
+            await asyncio.gather(t4, t5, t6, t7)
     except asyncio.CancelledError:
         print("live mode: play_prepare")
 
@@ -550,8 +584,8 @@ async def live():
 
 def start_live(scenes, product, obs_video_port, obs_audio_port, run_mode, c_id, interactive, config):
     global obs_wrapper
-    global du, script_scenes, product_script, device_index, config_id, interactive_enable, script_config, script_round, ref_speaker_name, need_switch, live_run_mode
-
+    global du, script_scenes, product_script, device_index, config_id, interactive_enable, script_config, script_round, need_switch, live_run_mode
+    print(f"scenes:{len(scenes)}")
     script_scenes = scenes
     product_script = product
     device_index = config.sound_device
@@ -614,9 +648,10 @@ async def switch_script():
     while True:
         if need_switch:
             # 收到切换脚本的指令后，一分钟之后开始，这里还需要减去最后一句tts的时间，所以等待时间等于（1分钟-最后一句TTS的时间）
-            await asyncio.sleep(50)
-            print("switch_script")
+            need_switch = False
+            await asyncio.sleep(40)
             product_script = preload_product
+            print(f"switch_script next tts length:{len(product_script.item_list)}")
             # 把预生成的TTS添加进queue
             for _, val in enumerate(product_script.item_list):
                 wav = val.wav
@@ -635,7 +670,7 @@ async def retrieve_live_script():
     script_round = script_round + 1
     print(f"retrieve_live_script round:{script_round}")
 
-    preload_product = lark_util.retrieve_live_script(config_id=config_id,sheet_id=script_config.product_sheet,src_range=script_config.product_range,seed=script_config.seed,round=script_round)
+    preload_product = lark_util.retrieve_live_script(config_id=config_id,sheet_id=script_config.product_sheet,src_range=script_config.product_range,seed=script_config.seed,script_round=script_round)
     
     # 把新脚本的item 入队进行llm处理
     for _, val in enumerate(preload_product.item_list):
