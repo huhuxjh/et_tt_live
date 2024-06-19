@@ -1,19 +1,16 @@
 import sys
 from remote_config import lark_util
-import tiktoklive.tiktok_live_util as tiktokUtil
+import tiktoklive.tiktok_live_util as live_util
+import tiktoklive.tiktok_prepare_util as prepare_util
 
-
-def start(browser_id, scenes, product, ref_speaker_name, device_id, obs_video_port,obs_audio_port, mode, config_id, interactive):
-    print(f"{browser_id}")
-    tiktokUtil.startClient(browser_id, scenes, product, ref_speaker_name, device_id, obs_video_port,obs_audio_port, mode, config_id, interactive)
 
 
 if __name__ == '__main__':
     config_id = "okL6Yo"
     config_src_range = 'B1:B10'
-    obs_video_port = 4455
-    obs_audio_port = 4456
-    run_mode = 0
+    obs_video_port = 0
+    obs_audio_port = 0
+    run_mode = 1
 
     # run_mode
     # 0: live 实时生成
@@ -54,6 +51,11 @@ if __name__ == '__main__':
     # 获取助播脚本
     scenes = lark_util.query_assist_script(config.assist_sheet, config.assist_range)
     # 启动main逻辑
-    start(config.browser_id, scenes, product, config.ref_speaker, config.sound_device, obs_video_port, obs_audio_port, run_mode, config_id, interactive)
-    # 如果完成后, 更新缓存, 拷贝音频
-    product.commit()
+    # start(config.browser_id, scenes, product, config.ref_speaker, config.sound_device, obs_video_port, obs_audio_port, run_mode, config_id, interactive)
+    if run_mode == 1:
+        prepare_util.start_prepare(product=product,configId=config_id,config=config)
+        # 如果完成后, 更新缓存, 拷贝音频
+        product.commit()
+    else:
+        live_util.startClient(scenes, product, obs_video_port, obs_audio_port, run_mode, config_id, interactive, config)
+

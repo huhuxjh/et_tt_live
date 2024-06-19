@@ -10,9 +10,13 @@ import time
 
 import chrome_utils
 import driver_utils
+import promopt_util
 import soundfile
 from pydub import AudioSegment
 from collections import deque
+from bean.product import Config
+from remote_config import lark_util
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from obs.Auto_script_source_V3 import *
@@ -48,7 +52,6 @@ urgent_tts_queue = queue.Queue(maxsize=10)
 # 最近播放的OBS视频
 last_obs_queue = deque()
 
-# obs_queue = queue.Queue(maxsize=3)
 obs_queue = []
 
 obs_wrapper = None
@@ -69,8 +72,8 @@ async def list_prepare_tts_task():
     # if prepare_tts_task: prepare_tts_task.cancel()
 
 
-async def check_comment(ref_speaker_name):
-    global last_chat_message
+async def check_comment():
+    global last_chat_message, script_config
     # 获取普通聊天List
     try:
         print(f"check_comment")
@@ -93,10 +96,10 @@ async def check_comment(ref_speaker_name):
     if owner_name + comment != last_chat_message:
         print(f"chat {owner_name} -> {comment}")
         last_chat_message = owner_name + comment
-        await llm_query_for_active(chat_with(owner_name, comment), ref_speaker_name)
+        await llm_query_for_active(promopt_util.chat_with(owner_name, comment))
 
 
-async def check_social(ref_speaker_name):
+async def check_social():
     global last_social_message, last_social_message_time
 
     current_timestamp = time.time()
@@ -132,14 +135,14 @@ async def check_social(ref_speaker_name):
         if social_text.__contains__('shared the LIVE video'):
             # share_reply = random.choice(share_reply_list)
             # await send_message(share_reply)
-            await llm_query_for_active(shared_with(social_owner_name), ref_speaker_name)
+            await llm_query_for_active(promopt_util.shared_with(social_owner_name))
         if social_text.__contains__('followed the host'):
             # follow_reply = random.choice(follow_reply_list)
             # await send_message(follow_reply)
-            await llm_query_for_active(followed_with(social_owner_name), ref_speaker_name)
+            await llm_query_for_active(promopt_util.followed_with(social_owner_name))
 
 
-async def check_enter(ref_speaker_name):
+async def check_enter():
     global last_enter_message, last_enter_message_time
     current_timestamp = time.time()
     # 开场10秒后才开始
@@ -168,39 +171,14 @@ async def check_enter(ref_speaker_name):
         print(f"join {enter_owner_name} -> {enter_text}")
         last_enter_message = enter_owner_name
         last_enter_message_time = current_timestamp
-        await llm_query_for_active(welcome_with(enter_owner_name), ref_speaker_name)
+        await llm_query_for_active(promopt_util.welcome_with(enter_owner_name))
         # await send_message(f'{enter_reply} {enter_owner_name}')
         # todo: llm and createTTS and put to urgent_queue
 
 
-def chat_with(who: str, content: str):
-    base = f'{who} says {content}, reply it'
-    return base
-
-
-def welcome_with(who: str):
-    base = f'{who} come in, greet {who}'
-    return base
-
-
-def liked_with(who: str):
-    base = f'{who} liked the live stream, thanks to {who}'
-    return base
-
-
-def followed_with(who: str):
-    base = f'{who} subscribed the live stream, thanks to {who}'
-    return base
-
-
-def shared_with(who: str):
-    base = f'{who} shared the live stream, thanks to {who}'
-    return base
-
-
 # 互动的llm查询
-async def llm_query_for_active(query, ref_speaker_name):
-    global product_script
+async def llm_query_for_active(query):
+    global product_script, script_config
     context = product_script.context
     # 在互动过程中，query就是指令
     # 在脚本过程中，query只是内容，sys_inst是指令
@@ -210,7 +188,7 @@ async def llm_query_for_active(query, ref_speaker_name):
     with timer('qa-llama_v3'):
         an = await llm_async(query, role_play, context, sys_inst, max_num_sentence, 1.05)
     print(f"llm_query_for_active an:{an}")
-    ref_speaker = os.path.join(resources, ref_speaker_name)
+    ref_speaker = os.path.join(resources, script_config.ref_speaker_name)
     # 参考音频
     ref_audios = [ref_speaker]
     for idx, audio in enumerate(ref_audios):
@@ -266,21 +244,21 @@ async def run_scene(scene):
         await asyncio.sleep(scene.cycle_time)
 
 
-async def enter_task(ref_speaker_name):
+async def enter_task():
     while True:
-        await check_enter(ref_speaker_name)
+        await check_enter()
         await asyncio.sleep(2)
 
 
-async def social_task(ref_speaker_name):
+async def social_task():
     while True:
-        await check_social(ref_speaker_name)
+        await check_social()
         await asyncio.sleep(3)
 
 
-async def chat_task(ref_speaker_name):
+async def chat_task():
     while True:
-        await check_comment(ref_speaker_name)
+        await check_comment()
         await asyncio.sleep(3)
 
 
@@ -315,13 +293,13 @@ async def llm_query(content_item):
     await asyncio.sleep(1)
 
 
-async def create_tts_task(ref_speaker_name):
+async def create_tts_task():
     global live_running
     print("create_tts_task")
     while True:
         if not query_queue.empty():
             content_item = query_queue.get()
-            await create_tts(content_item, ref_speaker_name)
+            await create_tts(content_item)
         elif not live_running:
             break
         await asyncio.sleep(1)
@@ -331,11 +309,22 @@ async def create_tts_task(ref_speaker_name):
     if tts_task: tts_task.cancel()
 
 
-async def create_tts(content_item, ref_speaker_name):
+async def create_tts_task_all_time():
+    print("create_tts_task_all_time")
+    while True:
+        if not query_queue.empty():
+            content_item = query_queue.get()
+            await create_tts(content_item)
+        await asyncio.sleep(1)
+
+
+
+async def create_tts(content_item):
+    global round, script_config
     # todo: 配置传入
     # todo: tts 生成的名字，现在的idx仍然可能重复
     print(f"create_tts: {content_item.index}")
-    ref_speaker = os.path.join(resources, ref_speaker_name)
+    ref_speaker = os.path.join(resources, script_config.ref_speaker_name)
     # 参考音频
     ref_audios = [ref_speaker]
     for idx, audio in enumerate(ref_audios):
@@ -349,10 +338,7 @@ async def create_tts(content_item, ref_speaker_name):
     an = content_item.text
     print(f'assistant> ', an)
     # 准备模式，把tts保存到固定路径
-    if is_prepare():
-        out = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{idx_turn}_{device_index}.wav')
-    else:  # 非准备模式，把tts保存到当天的路径
-        out = os.path.join(outputs_v2, f'{yyyymmdd}_{config_id}{os.path.sep}tts_{idx_turn}_{device_index}.wav')
+    out = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{idx_turn}_{device_index}_{round}.wav')
     # 如果文件夹不存在创建文件夹
     out_dir = os.path.dirname(out)
     if not os.path.exists(out_dir):
@@ -392,6 +378,8 @@ def play_audio(callback):
         content_item = tts_queue.get()
         wav = content_item.wav
         label = content_item.vid_label
+        if content_item.index == len(product_script.item_list):
+            switch_script()
     print(f"end to get tts queue, size:{tts_queue.qsize()}, wav:{wav}")
     device = device_list[device_index]
     if obs_wrapper:
@@ -417,13 +405,13 @@ def play_video(callback):
     if obs_wrapper:
         print(str(time.time()) + "=========== play " + obs_item_wrapper.obs_item["path"])
         beginVideo = True
-        play_effect()
+        play_trans_effect()
         return obs_wrapper.play_video(obs_item_wrapper.label, obs_item_wrapper.obs_item["path"], callback=callback)
     return False
 
 
-# 转场
-def play_effect():
+# 转场特效
+def play_trans_effect():
     if obs_wrapper:
         index = random.randrange(1, 3)
         if index == 1:
@@ -445,7 +433,7 @@ def play_effect():
 play_effect_period = 10
 
 
-def play_effect3():
+def play_random_effect():
     print("====================")
     global play_effect_period, last_play_effect_time
     current_time = time.time()
@@ -536,49 +524,39 @@ def drive_video(wav, label):
                 append_last_obs_queue(random_item)
 
 
-async def prepare(ref_speaker_name):
-    print("live mode: prepare")
-    global llm_task, tts_task
-    llm_task = asyncio.create_task(llm_query_task())
-    tts_task = asyncio.create_task(create_tts_task(ref_speaker_name))
-    try:
-        await asyncio.gather(llm_task, tts_task)
-    except asyncio.CancelledError:
-        print("live mode: prepare")
 
-
-async def play_prepare(ref_speaker_name):
+async def play_prepare():
     print("live mode: play_prepare")
     global prepare_tts_task
     if interactive_enable:
-        t1 = asyncio.create_task(enter_task(ref_speaker_name))
-        t2 = asyncio.create_task(social_task(ref_speaker_name))
+        t1 = asyncio.create_task(enter_task())
+        t2 = asyncio.create_task(social_task())
         t3 = asyncio.create_task(broadcast_task())
-        t4 = asyncio.create_task(chat_task(ref_speaker_name))
+        t4 = asyncio.create_task(chat_task())
         prepare_tts_task = asyncio.create_task(list_prepare_tts_task())
+        tts_task_all_time = asyncio.create_task(create_tts_task_all_time())
         try:
-            await asyncio.gather(t1, t2, t3, t4, prepare_tts_task)
+            await asyncio.gather(t1, t2, t3, t4, prepare_tts_task, tts_task_all_time)
         except asyncio.CancelledError:
             print("live mode: play_prepare")
     else:
         prepare_tts_task = asyncio.create_task(list_prepare_tts_task())
+        tts_task_all_time = asyncio.create_task(create_tts_task_all_time())
         try:
-            await asyncio.gather(prepare_tts_task)
+            await asyncio.gather(prepare_tts_task, tts_task_all_time)
         except asyncio.CancelledError:
             print("live mode: play_prepare")
 
 
-async def live(ref_speaker_name):
+async def live():
     print("live mode: live start")
     global interactive_enable
     global llm_task, tts_task, enter, social, broadcast, chat
     if interactive_enable:
-        enter = asyncio.create_task(enter_task(ref_speaker_name))
-        social = asyncio.create_task(social_task(ref_speaker_name))
+        enter = asyncio.create_task(enter_task())
+        social = asyncio.create_task(social_task())
         broadcast = asyncio.create_task(broadcast_task())
-        chat = asyncio.create_task(chat_task(ref_speaker_name))
-    llm_task = asyncio.create_task(llm_query_task())
-    tts_task = asyncio.create_task(create_tts_task(ref_speaker_name))
+        chat = asyncio.create_task(chat_task())
     try:
         if interactive_enable:
             await asyncio.gather(llm_task, tts_task, enter, social, broadcast, chat)
@@ -588,51 +566,45 @@ async def live(ref_speaker_name):
         print("live mode: live end")
 
 
-def is_prepare():
-    return live_mode == 1
 
-
-def is_play_prepare():
-    return live_mode == 2
-
-
-def startClient(browserId, scenes, product, ref_speaker_name, device_id, obs_video_port, obs_audio_port, mode, configId,
-                interactive):
+def startClient(scenes, product, obs_video_port, obs_audio_port, run_mode, configId, interactive, config):
     global obs_wrapper
-    global du, script_scenes, product_script, device_index, live_mode, config_id, interactive_enable
+    global du, script_scenes, product_script, device_index, config_id, interactive_enable, script_config, round, ref_speaker_name
     script_scenes = scenes
     product_script = product
-    device_index = device_id
-    live_mode = mode
+    device_index = config.sound_device
     config_id = configId
     interactive_enable = interactive
+    script_config = config
+    round = 0
+
     if interactive_enable:
-        driver, _ = chrome_utils.get_driver(browserId)
+        driver, _ = chrome_utils.get_driver(config.browser_id)
         if driver:
             du = driver_utils.DriverUtils(driver)
 
     global live_running, force_stop
     live_running = True
     force_stop = False
-    print('is_prepare, is_play_prepare=', is_prepare(), ', ', is_play_prepare())
     audio_thread = None
-    if is_prepare():
-        asyncio.run(prepare(ref_speaker_name))
-    elif is_play_prepare():
+
+    if run_mode == 2:
         if obs_video_port > 0:
             obs_wrapper = OBScriptManager(obs_video_port, obs_audio_port, local_video_dir)
             obs_wrapper.start()
         audio_thread = play_wav_cycle()
-        asyncio.run(play_prepare(ref_speaker_name))
+        # 开始预生成下一场的脚本和TTS
+        retrive_live_script()
+        asyncio.run(play_prepare())
     else:
         if obs_video_port > 0:
             obs_wrapper = OBScriptManager(obs_video_port, obs_audio_port, local_video_dir)
             obs_wrapper.start()
         audio_thread = play_wav_cycle()
-        asyncio.run(live(ref_speaker_name))
+        asyncio.run(live())
     print('thread force stop', audio_thread)
-    if audio_thread and audio_thread.is_alive():
-        force_stop = True
+    # if audio_thread and audio_thread.is_alive():
+    #     force_stop = True
 
 
 def play_wav_cycle():
@@ -649,7 +621,7 @@ def play_wav_cycle():
                     if v2 == 0 or (v2 - v1) == 0:
                         play_video(None)
 
-                    play_effect3()
+                    play_random_effect()
 
                 else:
                     play_audio(None)
@@ -660,3 +632,27 @@ def play_wav_cycle():
     thread = threading.Thread(target=worker)
     thread.start()
     return thread
+
+
+# 该场直播结束，切换下一场脚本
+def switch_script():
+    global preload_product, product_script
+    product_script = preload_product
+    for _, val in enumerate(product_script.item_list):
+        wav = val.wav
+        print(f"product_script wav:{wav}")
+        if os.path.exists(wav):
+            val.wav = wav
+            tts_queue.put(val)
+    retrive_live_script()
+
+
+# 生成新的脚本
+async def retrive_live_script():
+    global script_config, config_id, preload_product, round
+    round = round + 1
+    preload_product = lark_util.retrieve_live_script(config_id=config_id,sheet_id=script_config.sheet_id,src_range=script_config.src_range,seed=script_config.seed,reproduce=True)
+    
+    # 把新脚本的item 入队进行llm处理
+    for _, val in enumerate(preload_product.item_list):
+        await llm_query(val)
