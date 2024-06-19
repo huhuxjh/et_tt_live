@@ -107,10 +107,11 @@ async def create_tts(content_item):
 
 async def prepare():
     print("live mode: prepare")
-    global llm_task, tts_task
+    global llm_task, tts_task, live_running
     llm_task = asyncio.create_task(llm_query_task())
     tts_task = asyncio.create_task(create_tts_task())
     try:
+        live_running = True
         await asyncio.gather(llm_task, tts_task)
     except asyncio.CancelledError:
         print("live mode: prepare")
@@ -121,7 +122,7 @@ def start_prepare(product, configId, config):
     product_script = product
     device_index = config.sound_device
     config_id = configId
-    ref_speaker_name = config.ref_speaker_name
+    ref_speaker_name = config.ref_speaker
 
     asyncio.run(prepare())
 

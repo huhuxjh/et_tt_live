@@ -10,7 +10,7 @@ import time
 
 import chrome_utils
 import driver_utils
-import promopt_util
+from tiktoklive import promopt_util
 import soundfile
 from pydub import AudioSegment
 from collections import deque
