@@ -194,10 +194,10 @@ def retrieve_script(config_id, sheet_id, src_range, seed=5, reproduce=False):
 
 
 # 直播中动态生成脚本
-def retrieve_live_script(config_id, sheet_id, src_range, seed=5, reproduce=True, round = 1):
+def retrieve_live_script(config_id, sheet_id, src_range, seed=5, script_round=1):
     # 定义脚本资源文件夹
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    base_dir = os.path.join(base_dir, f'script_{config_id}_{round}')
+    base_dir = os.path.join(base_dir, f'script_{config_id}_{script_round}')
     if os.path.exists(base_dir):
         # 删除缓存
         shutil.rmtree(base_dir)

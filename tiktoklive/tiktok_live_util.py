@@ -1,8 +1,5 @@
 import asyncio
 import os
-import queue
-import random
-import re
 import shutil
 import sys
 import threading
@@ -14,7 +11,6 @@ from tiktoklive import promopt_util
 import soundfile
 from pydub import AudioSegment
 from collections import deque
-from bean.product import Config
 from remote_config import lark_util
 
 
@@ -67,9 +63,6 @@ async def list_prepare_tts_task():
         if os.path.exists(wav):
             val.wav = wav
             tts_queue.put(val)
-    # 结束协程
-    # global prepare_tts_task
-    # if prepare_tts_task: prepare_tts_task.cancel()
 
 
 async def check_comment():
@@ -263,15 +256,8 @@ async def chat_task():
 
 
 async def llm_query_task():
-    global live_running
-    while live_running:
-        for _, val in enumerate(product_script.item_list):
+    for _, val in enumerate(product_script.item_list):
             await llm_query(val)
-        live_running = False
-    # 结束协程
-    global llm_task
-    print('llm_query_task===>', llm_task)
-    if llm_task: llm_task.cancel()
 
 
 async def llm_query(content_item):
@@ -294,35 +280,28 @@ async def llm_query(content_item):
 
 
 async def create_tts_task():
-    global live_running
+    global product_script
     print("create_tts_task")
     while True:
         if not query_queue.empty():
             content_item = query_queue.get()
-            await create_tts(content_item)
-        elif not live_running:
-            break
+            await create_tts(content_item, product_script)
         await asyncio.sleep(1)
-    # 结束协程
-    global tts_task
-    print('create_tts_task===>', tts_task)
-    if tts_task: tts_task.cancel()
 
 
-async def create_tts_task_all_time():
+async def create_tts_task_for_preload():
     print("create_tts_task_all_time")
+    global preload_product
     while True:
         if not query_queue.empty():
             content_item = query_queue.get()
-            await create_tts(content_item)
+            await create_tts(content_item, product=preload_product)
         await asyncio.sleep(1)
 
 
 
-async def create_tts(content_item):
-    global round, script_config
-    # todo: 配置传入
-    # todo: tts 生成的名字，现在的idx仍然可能重复
+async def create_tts(content_item, product):
+    global script_round, script_config
     print(f"create_tts: {content_item.index}")
     ref_speaker = os.path.join(resources, script_config.ref_speaker)
     # 参考音频
@@ -337,8 +316,7 @@ async def create_tts(content_item):
     idx_turn = content_item.index
     an = content_item.text
     print(f'assistant> ', an)
-    # 准备模式，把tts保存到固定路径
-    out = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{idx_turn}_{device_index}_{round}.wav')
+    out = os.path.join(outputs_v2, f'{config_id}_{script_round}{os.path.sep}tts_{idx_turn}_{device_index}_{script_round}.wav')
     # 如果文件夹不存在创建文件夹
     out_dir = os.path.dirname(out)
     if not os.path.exists(out_dir):
@@ -352,9 +330,11 @@ async def create_tts(content_item):
         shutil.copy(wav, out)
         content_item.wav = out
         # wav 入队
-        tts_queue.put(content_item)
+        # 预生成的TTS不会马上入队，只有在切换脚本的时候，才一次性入队
+        if live_run_mode == 0:
+            tts_queue.put(content_item)
     # feed back到product_script
-    product_script.update_script_item(content_item)
+    product.update_script_item(content_item)
 
 
 def get_wav_dur(wav):
@@ -365,6 +345,7 @@ def get_wav_dur(wav):
 
 def play_audio(callback):
     print("play_audio")
+    global need_switch
     # 输出设备
     from sounddevice_wrapper import SOUND_DEVICE_NAME
     device_list = SOUND_DEVICE_NAME
@@ -379,8 +360,8 @@ def play_audio(callback):
         wav = content_item.wav
         label = content_item.vid_label
         if content_item.index == len(product_script.item_list):
-            switch_script()
-    print(f"end to get tts queue, size:{tts_queue.qsize()}, wav:{wav}")
+            need_switch = True
+    print(f"end to get tts queue, size:{tts_queue.qsize()}, wav:{wav} {time.time()}")
     device = device_list[device_index]
     if obs_wrapper:
         drive_video(wav, label)
@@ -392,9 +373,9 @@ def play_audio(callback):
         if callback: callback()
 
 
+
 def play_video(callback):
     global obs_queue
-    global beginVideo
     print(f"try play_obs, obs_queue:{len(obs_queue)}")
     if len(obs_queue) == 0:
         return False
@@ -404,7 +385,6 @@ def play_video(callback):
     print(f"play_obs obs_item_wrapper:{obs_item_wrapper.obs_item['duration']}")
     if obs_wrapper:
         print(str(time.time()) + "=========== play " + obs_item_wrapper.obs_item["path"])
-        beginVideo = True
         play_trans_effect()
         return obs_wrapper.play_video(obs_item_wrapper.label, obs_item_wrapper.obs_item["path"], callback=callback)
     return False
@@ -527,88 +507,83 @@ def drive_video(wav, label):
 
 async def play_prepare():
     print("live mode: play_prepare")
-    global prepare_tts_task, tts_task_all_time, t1, t2, t3, t4
-    if interactive_enable:
-        t1 = asyncio.create_task(enter_task())
-        t2 = asyncio.create_task(social_task())
-        t3 = asyncio.create_task(broadcast_task())
-        t4 = asyncio.create_task(chat_task())
-    prepare_tts_task = asyncio.create_task(list_prepare_tts_task())
-    tts_task_all_time = asyncio.create_task(create_tts_task_all_time())
     try:
         if interactive_enable:
-            await asyncio.gather(prepare_tts_task, tts_task_all_time, t1, t2, t3, t4)
+            t0 = asyncio.create_task(enter_task())
+            t1 = asyncio.create_task(social_task())
+            t2 = asyncio.create_task(broadcast_task())
+            t3 = asyncio.create_task(chat_task())
+            t4 = asyncio.create_task(retrieve_live_script())
+            t5 = asyncio.create_task(switch_script())
+            t6 = asyncio.create_task(list_prepare_tts_task())
+            t7 = asyncio.create_task(create_tts_task_for_preload())
+            await asyncio.gather(t6, t7)
         else:
-            await asyncio.gather(prepare_tts_task, tts_task_all_time)
+            t4 = asyncio.create_task(retrieve_live_script())
+            t5 = asyncio.create_task(switch_script())
+            t6 = asyncio.create_task(list_prepare_tts_task())
+            t7 = asyncio.create_task(create_tts_task_for_preload())
+            await asyncio.gather(t6, t7)
     except asyncio.CancelledError:
         print("live mode: play_prepare")
 
 
 async def live():
     print("live mode: live start")
-    global interactive_enable
-    global llm_task, tts_task, enter, social, broadcast, chat
-    if interactive_enable:
-        enter = asyncio.create_task(enter_task())
-        social = asyncio.create_task(social_task())
-        broadcast = asyncio.create_task(broadcast_task())
-        chat = asyncio.create_task(chat_task())
-    llm_task = asyncio.create_task(llm_query_task())
-    tts_task = asyncio.create_task(create_tts_task())
     try:
         if interactive_enable:
-            await asyncio.gather(llm_task, tts_task, enter, social, broadcast, chat)
+            enter = asyncio.create_task(enter_task())
+            social = asyncio.create_task(social_task())
+            broadcast = asyncio.create_task(broadcast_task())
+            chat = asyncio.create_task(chat_task())
+            llm_task = asyncio.create_task(llm_query_task())
+            tts_task = asyncio.create_task(create_tts_task())
+            await asyncio.gather(tts_task)
         else:
-            await asyncio.gather(llm_task, tts_task)
+            llm_task = asyncio.create_task(llm_query_task())
+            tts_task = asyncio.create_task(create_tts_task())
+            await asyncio.gather(tts_task)
     except asyncio.CancelledError:
         print("live mode: live end")
 
 
 
-def startClient(scenes, product, obs_video_port, obs_audio_port, run_mode, configId, interactive, config):
+def start_live(scenes, product, obs_video_port, obs_audio_port, run_mode, c_id, interactive, config):
     global obs_wrapper
-    global du, script_scenes, product_script, device_index, config_id, interactive_enable, script_config, round, ref_speaker_name
+    global du, script_scenes, product_script, device_index, config_id, interactive_enable, script_config, script_round, ref_speaker_name, need_switch, live_run_mode
+
     script_scenes = scenes
     product_script = product
     device_index = config.sound_device
-    config_id = configId
+    config_id = c_id
     interactive_enable = interactive
     script_config = config
-    round = 0
+    script_round = 0
+    live_run_mode = run_mode
 
     if interactive_enable:
         driver, _ = chrome_utils.get_driver(config.browser_id)
         if driver:
             du = driver_utils.DriverUtils(driver)
 
-    global live_running, force_stop
-    live_running = True
-    force_stop = False
-    audio_thread = None
-
     if run_mode == 2:
         if obs_video_port > 0:
             obs_wrapper = OBScriptManager(obs_video_port, obs_audio_port, local_video_dir)
             obs_wrapper.start()
-        audio_thread = play_wav_cycle()
+        play_wav_cycle()
         # 开始预生成下一场的脚本和TTS
-        retrive_live_script()
         asyncio.run(play_prepare())
     else:
         if obs_video_port > 0:
             obs_wrapper = OBScriptManager(obs_video_port, obs_audio_port, local_video_dir)
             obs_wrapper.start()
-        audio_thread = play_wav_cycle()
+        play_wav_cycle()
         asyncio.run(live())
-    print('thread force stop', audio_thread)
-    # if audio_thread and audio_thread.is_alive():
-    #     force_stop = True
 
 
 def play_wav_cycle():
     def worker():
-        global live_running, force_stop
-        while live_running or not force_stop:
+        while True:
             try:
                 if obs_wrapper:
                     a1, a2 = obs_wrapper.get_audio_status()
@@ -625,31 +600,42 @@ def play_wav_cycle():
                     play_audio(None)
             except soundfile.LibsndfileError as ignore:
                 print(ignore)
-            time.sleep(random.uniform(0.5, 4))
+            time.sleep(random.uniform(0.5, 1))
 
     thread = threading.Thread(target=worker)
     thread.start()
     return thread
 
 
+need_switch = False
 # 该场直播结束，切换下一场脚本
-def switch_script():
-    global preload_product, product_script
-    product_script = preload_product
-    for _, val in enumerate(product_script.item_list):
-        wav = val.wav
-        print(f"product_script wav:{wav}")
-        if os.path.exists(wav):
-            val.wav = wav
-            tts_queue.put(val)
-    retrive_live_script()
+async def switch_script():
+    global preload_product, product_script, need_switch
+    while True:
+        if need_switch:
+            # 收到切换脚本的指令后，一分钟之后开始，这里还需要减去最后一句tts的时间，所以等待时间等于（1分钟-最后一句TTS的时间）
+            await asyncio.sleep(50)
+            print("switch_script")
+            product_script = preload_product
+            # 把预生成的TTS添加进queue
+            for _, val in enumerate(product_script.item_list):
+                wav = val.wav
+                print(f"product_script wav:{wav}")
+                if os.path.exists(wav):
+                    val.wav = wav
+                    tts_queue.put(val)
+            # 继续生成下一场
+            await retrieve_live_script()
+        await asyncio.sleep(2)
 
 
 # 生成新的脚本
-async def retrive_live_script():
-    global script_config, config_id, preload_product, round
-    round = round + 1
-    preload_product = lark_util.retrieve_live_script(config_id=config_id,sheet_id=script_config.sheet_id,src_range=script_config.src_range,seed=script_config.seed,reproduce=True)
+async def retrieve_live_script():
+    global script_config, config_id, preload_product, script_round
+    script_round = script_round + 1
+    print(f"retrieve_live_script round:{script_round}")
+
+    preload_product = lark_util.retrieve_live_script(config_id=config_id,sheet_id=script_config.product_sheet,src_range=script_config.product_range,seed=script_config.seed,round=script_round)
     
     # 把新脚本的item 入队进行llm处理
     for _, val in enumerate(preload_product.item_list):
