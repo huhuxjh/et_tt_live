@@ -8,6 +8,7 @@ import time
 
 import chrome_utils
 import driver_utils
+import bit_api
 from tiktoklive import promopt_util
 import soundfile
 from pydub import AudioSegment
@@ -77,7 +78,7 @@ async def list_prepare_tts_task():
 
 
 async def check_comment():
-    global last_chat_message, script_config
+    global last_chat_message, script_config, receive_browser_m
     # 获取普通聊天List
     try:
         print(f"check_comment")
@@ -99,12 +100,13 @@ async def check_comment():
         return
     if owner_name + comment != last_chat_message:
         print(f"chat {owner_name} -> {comment}")
+        receive_browser_m = True
         last_chat_message = owner_name + comment
         await llm_query_for_active(promopt_util.chat_with(owner_name, comment))
 
 
 async def check_social():
-    global last_social_message, last_social_message_time
+    global last_social_message, last_social_message_time, receive_browser_m
 
     current_timestamp = time.time()
     # 开播20秒后才开始
@@ -134,6 +136,7 @@ async def check_social():
     # 点赞： todo
     if social_owner_name + social_text != last_social_message:
         print(f"social {social_owner_name} -> {social_text}")
+        receive_browser_m = True
         last_social_message = social_owner_name + social_text
         last_social_message_time = current_timestamp
         if social_text.__contains__('shared the LIVE video'):
@@ -152,7 +155,7 @@ async def check_social():
 
 
 async def check_enter():
-    global last_enter_message, last_enter_message_time
+    global last_enter_message, last_enter_message_time, receive_browser_m
     current_timestamp = time.time()
     # 开场10秒后才开始
     if last_enter_message_time == 0:
@@ -177,6 +180,7 @@ async def check_enter():
     enter_text = "joined"
     print(f'enter_message enter_owner_name {enter_owner_name}, last_enter_message {last_enter_message}')
     if enter_owner_name != last_enter_message and len(enter_owner_name) > 0:
+        receive_browser_m = True
         print(f"join {enter_owner_name} -> {enter_text}")
         last_enter_message = enter_owner_name
         last_enter_message_time = current_timestamp
@@ -271,6 +275,7 @@ async def social_task():
         await check_social()
         await asyncio.sleep(3)
 
+
 async def send_message_task():
     while True:
         print(f"send_message_task check: text_queue.size ={text_queue.qsize()}")
@@ -278,6 +283,15 @@ async def send_message_task():
             message = text_queue.get()
             await send_message(message)
         await asyncio.sleep(1)
+
+
+async def refresh_browser():
+    global receive_browser_m
+    receive_browser_m = False
+    while not receive_browser_m:
+        print("refresh_browser")
+        du.get(script_config.live_address)
+        await asyncio.sleep(10)
 
 
 async def chat_task():
@@ -549,7 +563,8 @@ async def play_prepare():
             t6 = asyncio.create_task(list_prepare_tts_task())
             t7 = asyncio.create_task(create_tts_task_for_preload())
             t8 = asyncio.create_task(send_message_task())
-            await asyncio.gather(t0,t1,t2,t3,t4,t5,t6,t7,t8)
+            t9 = asyncio.create_task(refresh_browser())
+            await asyncio.gather(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9)
         else:
             t4 = asyncio.create_task(retrieve_live_script())
             t5 = asyncio.create_task(switch_script())
@@ -594,9 +609,7 @@ def start_live(scenes, product, obs_video_port, obs_audio_port, local_video_dir,
     live_run_mode = run_mode
 
     if interactive_enable:
-        driver, _ = chrome_utils.get_driver(config.browser_id)
-        if driver:
-            du = driver_utils.DriverUtils(driver)
+        start_bit_browser()
 
     if run_mode == 2:
         if obs_video_port > 0:
@@ -673,3 +686,14 @@ async def retrieve_live_script():
     # 把新脚本的item 入队进行llm处理
     for _, val in enumerate(preload_product.item_list):
         await llm_query(val)
+
+
+def start_bit_browser():
+    global script_config
+    global du, script_config
+    browser_id = bit_api.get_id_by_name(script_config.room_name)
+    driver, _ = chrome_utils.get_driver(browser_id)
+    if driver:
+        du = driver_utils.DriverUtils(driver)
+        driver.switch_to.window(driver.window_handles[0])
+        du.open_url(script_config.live_address)
