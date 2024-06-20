@@ -1,3 +1,4 @@
 *.pyc
 .idea/
-remote_config/script_*
+remote_config/script_*/
+/log/
