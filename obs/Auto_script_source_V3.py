@@ -156,16 +156,16 @@ class EventObserver:
         for item in self._sceneLayers:
             if item['sourceName'] == key:
                 trans = {}
-                trans['rotation'] = 0
                 source_ratio  = source_config["width"] / source_config['height']
                 scene_ratio = self._curSceneWidth / self._curSceneHeight
                 # FITIN填充策略
                 base_scale = self._curSceneWidth / source_config["width"] if source_ratio > scene_ratio else self._curSceneHeight / source_config["height"]
                 scale = random.uniform(base_scale, base_scale*1.1)
+                trans['rotation'] = random.randint(-30*(1.0-scale), 30*(1.0-scale))
                 trans['scaleX'] = scale
                 trans['scaleY'] = scale
                 trans['positionY'] = self._curSceneHeight/2 - source_config["height"] / 2 * scale
-                trans['positionX'] = self._curSceneWidth/2 - source_config["width"] / 2 * scale
+                # trans['positionX'] = self._curSceneWidth/2 - source_config["width"] / 2 * scale
                 self._request.set_scene_item_transform(self._curScene, item['sceneItemId'], trans)
                 self._request.set_scene_item_enabled(self._curScene, item['sceneItemId'], True)
                 print(str(time.time()) + "=========== start play")
