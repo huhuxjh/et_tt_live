@@ -57,8 +57,6 @@ obs_queue = []
 
 obs_wrapper = None
 
-local_video_dir = "D:\\video_res"
-
 welcome_list = ["welcome", "hi", "hello, welcome to the live stream"]
 
 followed_list = ["Appreciate the followed","Appreciate the followed, thank you very much"]
@@ -582,7 +580,7 @@ async def live():
 
 
 
-def start_live(scenes, product, obs_video_port, obs_audio_port, run_mode, c_id, interactive, config):
+def start_live(scenes, product, obs_video_port, obs_audio_port, local_video_dir, run_mode, c_id, interactive, config):
     global obs_wrapper
     global du, script_scenes, product_script, device_index, config_id, interactive_enable, script_config, script_round, need_switch, live_run_mode
     print(f"scenes:{len(scenes)}")

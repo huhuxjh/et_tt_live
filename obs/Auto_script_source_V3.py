@@ -407,25 +407,3 @@ if __name__ == "__main__":
         idx += 1
         
         
-#
-# from template_generator import ffmpeg as template_ffmpeg
-# for root, dirs, files in os.walk("D:\\video_res"):
-#     for file in files:
-#         if "selling_point_2" in root or "selling_point_3" in root or "selling_point_4" in root or "welcome" in root:
-#             # 检查文件扩展名是否匹配
-#             if any(file.lower().endswith(ext) for ext in ['.mp4', '.avi', '.mov']):
-#                 try:
-#                     src = os.path.join(root, file)
-#                     dst = os.path.join(root, file.replace(".MOV", "_.MOV").replace(".mov", "_.mov"))
-#                     template_ffmpeg.process([
-#                         "-i",
-#                         src,
-#                         "-metadata:s:v:0",
-#                         "rotate=0",
-#                         "-y",
-#                         dst
-#                     ], "")
-#                     os.remove(src)
-#                     os.rename(dst, src)
-#                 except:
-#                     pass

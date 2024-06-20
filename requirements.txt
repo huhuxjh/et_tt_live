@@ -14,3 +14,4 @@ websocket
 websocket-client
 tomli
 p-template-generator
+psutil

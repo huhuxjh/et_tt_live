@@ -7,25 +7,7 @@ import tiktoklive.tiktok_prepare_util as prepare_util
 # 0: live 实时生成
 # 1: prepare 直播前准备
 # 2: play prepare 播放准备素材
-if __name__ == '__main__':
-    config_id = "okL6Yo"
-    config_src_range = 'B1:B10'
-    obs_video_port = 0
-    obs_audio_port = 0
-    # run_mode = 0
-
-    idx = 1
-    while idx < len(sys.argv):
-        if sys.argv[idx] == "--config_id":
-            config_id = sys.argv[idx + 1]
-        elif sys.argv[idx] == "--obs_video_port":
-            obs_video_port = int(sys.argv[idx + 1])
-        elif sys.argv[idx] == "--obs_audio_port":
-            obs_audio_port = int(sys.argv[idx + 1])
-        elif sys.argv[idx] == "--run_mode":
-            run_mode = int(sys.argv[idx + 1])
-        idx += 1
-
+def process(config_id, config_src_range, obs_video_port, obs_audio_port, run_mode, local_video_dir):
     if run_mode == 0:
         reproduce = True
         interactive = True
@@ -41,6 +23,7 @@ if __name__ == '__main__':
           f'obs_video_port={obs_video_port},'
           f'obs_audio_port={obs_audio_port}, '
           f'run_mode={run_mode}, '
+          f'local_video_dir={local_video_dir}, '
           f'reproduce={reproduce}')
 
     # 请求配置
@@ -62,5 +45,25 @@ if __name__ == '__main__':
         # 如果完成后, 更新缓存, 拷贝音频
         product.commit()
     else:
-        live_util.start_live(scenes, product, obs_video_port, obs_audio_port, run_mode, config_id, interactive, config)
+        live_util.start_live(scenes, product, obs_video_port, obs_audio_port, local_video_dir, run_mode, config_id, interactive, config)
 
+
+if __name__ == '__main__':
+    config_id = "okL6Yo"
+    config_src_range = 'B1:B10'
+    obs_video_port = 0
+    obs_audio_port = 0
+    # run_mode = 0
+
+    idx = 1
+    while idx < len(sys.argv):
+        if sys.argv[idx] == "--config_id":
+            config_id = sys.argv[idx + 1]
+        elif sys.argv[idx] == "--obs_video_port":
+            obs_video_port = int(sys.argv[idx + 1])
+        elif sys.argv[idx] == "--obs_audio_port":
+            obs_audio_port = int(sys.argv[idx + 1])
+        elif sys.argv[idx] == "--run_mode":
+            run_mode = int(sys.argv[idx + 1])
+        idx += 1
+    process(config_id, config_src_range, obs_video_port, obs_audio_port, run_mode)
