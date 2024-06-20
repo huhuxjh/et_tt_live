@@ -165,7 +165,7 @@ class EventObserver:
                 trans['scaleX'] = scale
                 trans['scaleY'] = scale
                 trans['positionY'] = self._curSceneHeight/2 - source_config["height"] / 2 * scale
-                # trans['positionX'] = self._curSceneWidth/2 - source_config["width"] / 2 * scale
+                trans['positionX'] = self._curSceneWidth/2 - source_config["width"] / 2 * scle
                 self._request.set_scene_item_transform(self._curScene, item['sceneItemId'], trans)
                 self._request.set_scene_item_enabled(self._curScene, item['sceneItemId'], True)
                 print(str(time.time()) + "=========== start play")
