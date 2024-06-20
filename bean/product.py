@@ -6,10 +6,10 @@ import shutil
 
 
 class Config:
-    def __init__(self, room_name, browser_id, product_sheet, product_range,
+    def __init__(self, room_name, live_address, product_sheet, product_range,
                  assist_sheet, assist_range, ref_speaker, sound_device, seed):
         self.room_name = room_name
-        self.browser_id = browser_id
+        self.live_address = live_address
         self.product_sheet = product_sheet
         self.product_range = product_range
         self.assist_sheet = assist_sheet

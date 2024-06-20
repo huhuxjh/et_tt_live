@@ -46,7 +46,8 @@ if __name__ == '__main__':
     # 请求配置
     config = lark_util.retrieve_config(config_id, config_src_range)
 
-    print(f"browser: {config.browser_id},"
+    print(f"room_name: {config.room_name},"
+          f"live_address: {config.live_address},"
           f"product_sheet: {config.product_sheet},"
           f"product_range:{config.product_range},"
           f"assist_sheet: {config.assist_sheet},"

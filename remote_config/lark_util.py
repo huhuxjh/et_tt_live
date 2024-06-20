@@ -82,8 +82,8 @@ def retrieve_config(sheet_id, src_range):
     data_sheet = query_sheet_range(sheet_id, src_range)
     # 获取直播间名字
     room_name = data_sheet[1][0]
-    # 获取指纹浏览器ID
-    browser_id = data_sheet[2][0]
+    # 获取直播间地址
+    live_address = data_sheet[2][0]
     # 获取主播商品介绍sheetId
     product_sheet = data_sheet[3][0]
     # 获取主播商品介绍sheet_range
@@ -102,7 +102,7 @@ def retrieve_config(sheet_id, src_range):
     # seed = 5
     return Config(
         room_name=room_name,
-        browser_id=browser_id,
+        live_address=live_address,
         product_sheet=product_sheet,
         product_range=product_range,
         assist_sheet=assist_sheet,
