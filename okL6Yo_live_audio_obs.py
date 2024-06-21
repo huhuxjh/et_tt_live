@@ -10,7 +10,6 @@ def is_process_running(name, keyword):
             pass
     return False
 
-
 def copy_files_recursively(src_dir, dst_dir):
     if not os.path.exists(dst_dir):
         os.makedirs(dst_dir)
