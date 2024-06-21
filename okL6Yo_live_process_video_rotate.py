@@ -23,11 +23,14 @@ def get_rotation_metadata(video_path):
     return 0
         
 if __name__ == '__main__':
-    dir = sys.argv[1]
+    dir = "D:\\video_res"
+    if len(sys.argv) > 1:
+        dir = sys.argv[1]
     for root, dirs, files in os.walk(dir):
         for file in files:
             if any(file.lower().endswith(ext) for ext in ['.mp4', '.avi', '.mov']):
                 try:
+
                     src = os.path.join(root, file)
                     rotation = get_rotation_metadata(src)
 

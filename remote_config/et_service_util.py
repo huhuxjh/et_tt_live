@@ -22,7 +22,7 @@ async def post_retry(url, headers, data):
     return session.post(url, headers=headers, json=data)
 
 
-async def ver_async():
+def ver_async():
     """
     返回JSON格式：
     {
@@ -36,13 +36,16 @@ async def ver_async():
       ]
     }
     """
-    url = f"{HOST}/llm/tts/ver"
-    headers = {
-        "accept": "application/json",
-        "Content-Type": "application/json"
-    }
-    response = requests.get(url, headers=headers)
-    return response.status_code == 200
+    try:
+        url = f"{HOST}/llm/tts/ver"
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        response = requests.get(url, headers=headers, timeout=5)
+        return response.status_code == 200
+    except:
+        return False
 
 
 async def llm_async(query, role_play, context, inst_text, max_num_sentence, repetition_penalty, language="english"):
