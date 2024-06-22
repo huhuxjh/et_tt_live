@@ -29,6 +29,7 @@ from remote_config.et_service_util import tts_async
 from selenium.webdriver.common.by import By
 from bean.obs_item_wrapper import ObsItemWrapper
 
+# todo: 需要配置
 my_name = "weiwei_one_day"
 
 last_chat_message = ""
