@@ -3,6 +3,7 @@ from remote_config import lark_util
 import tiktoklive.tiktok_live_util as live_util
 import tiktoklive.tiktok_prepare_util as prepare_util
 
+
 # run_mode
 # 0: live 实时生成
 # 1: prepare 直播前准备
@@ -14,7 +15,7 @@ def process(config_id, config_src_range, obs_video_port, obs_audio_port, run_mod
     elif run_mode == 1:
         reproduce = True
         interactive = False
-    else:  
+    else:
         reproduce = False
         interactive = True
 
@@ -42,11 +43,12 @@ def process(config_id, config_src_range, obs_video_port, obs_audio_port, run_mod
     scenes = lark_util.query_assist_script(config.assist_sheet, config.assist_range)
     # 启动main逻辑
     if run_mode == 1:
-        prepare_util.start_prepare(product=product,configId=config_id,config=config)
+        prepare_util.start_prepare(product=product, configId=config_id, config=config)
         # 如果完成后, 更新缓存, 拷贝音频
         product.commit()
     else:
-        live_util.start_live(scenes, product, obs_video_port, obs_audio_port, local_video_dir, run_mode, config_id, interactive, config)
+        live_util.start_live(scenes, product, obs_video_port, obs_audio_port, local_video_dir, run_mode, config_id,
+                             interactive, config)
 
 
 if __name__ == '__main__':
@@ -55,6 +57,7 @@ if __name__ == '__main__':
     obs_video_port = 0
     obs_audio_port = 0
     # run_mode = 0
+    local_video_dir = "D:\\video_res"
 
     idx = 1
     while idx < len(sys.argv):
@@ -67,4 +70,4 @@ if __name__ == '__main__':
         elif sys.argv[idx] == "--run_mode":
             run_mode = int(sys.argv[idx + 1])
         idx += 1
-    process(config_id, config_src_range, obs_video_port, obs_audio_port, run_mode)
+    process(config_id, config_src_range, obs_video_port, obs_audio_port, run_mode, local_video_dir)

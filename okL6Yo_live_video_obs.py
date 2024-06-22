@@ -4,8 +4,8 @@ import okL6Yo_live_audio_obs
 
 this_file_dir = os.path.dirname(os.path.abspath(__file__))
 cache_dir = os.path.join(this_file_dir, "obs_video_cache")
-obs_cache_path = "C:\\Users\\1\\AppData\\Roaming\\obs-studio"
-exe_path = "D:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe"
+obs_cache_path = "C:\\Users\\admin\\AppData\\Roaming\\obs-studio"
+exe_path = "D:\\OBS-Studio-B\\bin\\64bit\\obs64.exe"
 keyword = "video"
 if __name__ == '__main__':
     if okL6Yo_live_audio_obs.is_process_running("obs64.exe", keyword) == False:

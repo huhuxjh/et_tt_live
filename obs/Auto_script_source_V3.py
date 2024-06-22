@@ -90,7 +90,7 @@ class EventObserver:
         # 视频创建时一次性加载_effect_dir下所有的自定义的特效
         if self._effect_dir is not None and os.path.isdir(self._effect_dir):
             all_effects = os.listdir(self._effect_dir)
-            filterObject = self._curScene if self._effectType == OBS_EFFECT_TYPE_SCENE else key
+            filterObject = self._curScene if self._effectType == OBS_EFFECT_TYPE_SCENE else "wav"
             response = self._request.get_source_filter_list(self._curScene)
             addedFilters = []
             if response is not None and response.filters is not None:
@@ -161,11 +161,11 @@ class EventObserver:
                 # FITIN填充策略
                 base_scale = self._curSceneWidth / source_config["width"] if source_ratio > scene_ratio else self._curSceneHeight / source_config["height"]
                 scale = random.uniform(base_scale, base_scale*1.1)
-                trans['rotation'] = random.randint(-30*(1.0-scale), 30*(1.0-scale))
+                trans['rotation'] = random.randint(int(-30*abs(base_scale-scale)), int(30*abs(base_scale-scale)))
                 trans['scaleX'] = scale
                 trans['scaleY'] = scale
                 trans['positionY'] = self._curSceneHeight/2 - source_config["height"] / 2 * scale
-                trans['positionX'] = self._curSceneWidth/2 - source_config["width"] / 2 * scle
+                trans['positionX'] = self._curSceneWidth/2 - source_config["width"] / 2 * scale
                 self._request.set_scene_item_transform(self._curScene, item['sceneItemId'], trans)
                 self._request.set_scene_item_enabled(self._curScene, item['sceneItemId'], True)
                 print(str(time.time()) + "=========== start play")

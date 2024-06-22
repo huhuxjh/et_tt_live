@@ -30,10 +30,11 @@ class DriverUtils:
             self.driver.get(url)
             log.logger.info(f'打开成功:{url},{self.driver.title}')
             time.sleep(1)
-            return
+            return True
         except Exception as e:
-            log.logger.error(f'打开失败:{url}')
+            log.logger.error(f'打开失败:{url} reason is {e}')
             self.driver.execute_script('window.stop()')
+            return False
 
     def random_sleep(self):
         # sleep(0.1)
@@ -123,9 +124,12 @@ class DriverUtils:
     def click_by_element(self, element):
         if element:
             # element.click()
+            print("ready to click the sendButton 1")
             actions = ActionChains(self.driver)
+            print("ready to click the sendButton 2")
             actions.move_to_element(element).click().perform()
-            self.random_sleep()
+            print("ready to click the sendButton 3")
+            # self.random_sleep()
 
     def click_by_css(self, css):
         # self.captcha_util.check_captcha()
@@ -162,8 +166,8 @@ class DriverUtils:
             actions.move_to_element(element).click()
             actions.send_keys(value)
             actions.perform()
-        self.random_sleep()
-        self.captcha_util.check_captcha()    
+        # self.random_sleep()
+        # self.captcha_util.check_captcha()
 
     def select_tiktok_birthday(self, index, random_start, random_end):
         actions = ActionChains(self.driver)

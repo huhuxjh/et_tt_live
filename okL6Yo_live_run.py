@@ -26,7 +26,7 @@ def process_video_rotate(path="D:\\video_res"):
 def open_bt_broswer():
     if okL6Yo_live_audio_obs.is_process_running("比特浏览器.exe", "比特浏览器.exe") == False:
         try:
-            exe_path = "D:\\bitbrowswer\\bitbrowser\\比特浏览器.exe"
+            exe_path = "D:\\bitbrowser\\比特浏览器.exe"
             subprocess.Popen([exe_path], cwd=os.path.dirname(exe_path), creationflags=subprocess.CREATE_NEW_CONSOLE)
         except subprocess.CalledProcessError as e:
             print(f"启动比特浏览器失败： {e}")
@@ -49,4 +49,4 @@ if __name__ == '__main__':
         time.sleep(3)
     print("开启处理...")
     run_mode = int(sys.argv[1])
-    main.process("okL6Yo", "B1:B10", 4455, 4456, run_mode, local_video_dir)
+    main.process("okL6Yo", "B1:B10", 4456, 4455, run_mode, local_video_dir)

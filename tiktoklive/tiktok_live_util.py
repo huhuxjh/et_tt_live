@@ -15,7 +15,6 @@ from pydub import AudioSegment
 from collections import deque
 from remote_config import lark_util
 
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from obs.Auto_script_source_V3 import *
 
@@ -37,8 +36,8 @@ last_enter_message = ""
 last_enter_message_time = 0
 last_social_message_time = 0
 
-social_message_min_period = 50
-enter_message_min_period = 50
+social_message_min_period = 20
+enter_message_min_period = 20
 
 last_play_effect_time = 0
 
@@ -48,7 +47,6 @@ tts_queue = queue.Queue()
 # 公屏队列
 text_queue = queue.Queue()
 
-urgent_query_queue = queue.Queue(maxsize=10)
 urgent_tts_queue = queue.Queue(maxsize=10)
 
 # 最近播放的OBS视频
@@ -60,11 +58,9 @@ obs_wrapper = None
 
 welcome_list = ["welcome", "hi", "hello, welcome to the live stream"]
 
-followed_list = ["Appreciate the followed","Appreciate the followed, thank you very much"]
+followed_list = ["Appreciate the followed", "Appreciate the followed, thank you very much"]
 
 shared_list = ["Appreciate the shared", "Thank you for sharing the live stream"]
-
-
 
 
 async def list_prepare_tts_task():
@@ -111,7 +107,7 @@ async def check_social():
     current_timestamp = time.time()
     # 开播20秒后才开始
     if last_social_message_time == 0:
-        last_social_message_time = current_timestamp - 20
+        last_social_message_time = current_timestamp - 10
     period_time = current_timestamp - last_social_message_time - social_message_min_period
     print(f'social_message period_time {period_time}')
     if period_time < 0:
@@ -184,7 +180,7 @@ async def check_enter():
         print(f"join {enter_owner_name} -> {enter_text}")
         last_enter_message = enter_owner_name
         last_enter_message_time = current_timestamp
-        index = random.randrange(0,1)
+        index = random.randrange(0, 1)
         if index == 0:
             await create_tts_for_active(f"{random.choice(welcome_list)}, {enter_owner_name}")
         else:
@@ -203,6 +199,7 @@ async def llm_query_for_active(query):
         an = await llm_async(query, role_play, context, sys_inst, max_num_sentence, 1.05)
     print(f"llm_query_for_active an:{an}")
     await create_tts_for_active(an)
+
 
 async def create_tts_for_active(content):
     ref_speaker = os.path.join(resources, script_config.ref_speaker)
@@ -224,17 +221,20 @@ async def create_tts_for_active(content):
         ref_name, _ = os.path.splitext(os.path.basename(random.choice(ref_audios)))
         output_name, _ = os.path.splitext(os.path.basename(out))
         wav = await tts_async(content, ref_name, output_name, "ov_v2")
-        wav = wav.replace('"', '')
-        # 复制到本地
-        shutil.copy(wav, out)
-        # wav 入队
-        urgent_tts_queue.put(out)
+        if wav:
+            wav = wav.replace('"', '')
+            # 复制到本地
+            shutil.copy(wav, out)
+            # wav 入队
+            try:
+                urgent_tts_queue.put(out, block=False)
+            except Exception as e:
+                print(f"urgent_tts_queue error:{e}")
 
 
 async def send_message(content):
     try:
         du.input_value_by_css('div[data-e2e="comment-text"]', content)
-        await asyncio.sleep(0.5)
         sendButton = du.find_css_element('div[data-e2e="comment-post"]')
         du.click_by_element(sendButton)
     except Exception:
@@ -286,11 +286,18 @@ async def send_message_task():
 
 
 async def refresh_browser():
-    global receive_browser_m
+    global receive_browser_m, driver
     receive_browser_m = False
+    print(f"refresh_browser receive_browser_m:{receive_browser_m}")
     while not receive_browser_m:
-        print("refresh_browser")
-        du.get(script_config.live_address)
+        if driver:
+            try:
+                url = script_config.live_address[0]["link"]
+                print(f"refresh_browser:{url}")
+                driver.get(url)
+            except Exception as e:
+                print(f"refresh exception:{e}")
+
         await asyncio.sleep(10)
 
 
@@ -302,7 +309,7 @@ async def chat_task():
 
 async def llm_query_task():
     for _, val in enumerate(product_script.item_list):
-            await llm_query(val)
+        await llm_query(val)
 
 
 async def llm_query(content_item):
@@ -344,7 +351,6 @@ async def create_tts_task_for_preload():
         await asyncio.sleep(1)
 
 
-
 async def create_tts(content_item, product):
     global script_round, script_config
     print(f"create_tts: {content_item.index}")
@@ -361,7 +367,8 @@ async def create_tts(content_item, product):
     idx_turn = content_item.index
     an = content_item.text
     print(f'assistant> ', an)
-    out = os.path.join(outputs_v2, f'{config_id}_{script_round}{os.path.sep}tts_{idx_turn}_{device_index}_{script_round}.wav')
+    out = os.path.join(outputs_v2,
+                       f'{config_id}_{script_round}{os.path.sep}tts_{idx_turn}_{device_index}_{script_round}.wav')
     # 如果文件夹不存在创建文件夹
     out_dir = os.path.dirname(out)
     if not os.path.exists(out_dir):
@@ -418,7 +425,6 @@ def play_audio(callback):
         if callback: callback()
 
 
-
 def play_video(callback):
     global obs_queue
     print(f"try play_obs, obs_queue:{len(obs_queue)}")
@@ -459,7 +465,6 @@ play_effect_period = 10
 
 
 def play_random_effect():
-    print("====================")
     global play_effect_period, last_play_effect_time
     current_time = time.time()
     if obs_wrapper and (current_time - last_play_effect_time) > play_effect_period:
@@ -549,7 +554,6 @@ def drive_video(wav, label):
                 append_last_obs_queue(random_item)
 
 
-
 async def play_prepare():
     print("live mode: play_prepare")
     try:
@@ -564,7 +568,7 @@ async def play_prepare():
             t7 = asyncio.create_task(create_tts_task_for_preload())
             t8 = asyncio.create_task(send_message_task())
             t9 = asyncio.create_task(refresh_browser())
-            await asyncio.gather(t0,t1,t2,t3,t4,t5,t6,t7,t8,t9)
+            await asyncio.gather(t0, t1, t2, t3, t4, t5, t6, t7, t8, t9)
         else:
             t4 = asyncio.create_task(retrieve_live_script())
             t5 = asyncio.create_task(switch_script())
@@ -592,7 +596,6 @@ async def live():
             await asyncio.gather(tts_task)
     except asyncio.CancelledError:
         print("live mode: live end")
-
 
 
 def start_live(scenes, product, obs_video_port, obs_audio_port, local_video_dir, run_mode, c_id, interactive, config):
@@ -653,6 +656,8 @@ def play_wav_cycle():
 
 
 need_switch = False
+
+
 # 该场直播结束，切换下一场脚本
 async def switch_script():
     global preload_product, product_script, need_switch
@@ -681,8 +686,10 @@ async def retrieve_live_script():
     script_round = script_round + 1
     print(f"retrieve_live_script round:{script_round}")
 
-    preload_product = lark_util.retrieve_live_script(config_id=config_id,sheet_id=script_config.product_sheet,src_range=script_config.product_range,seed=script_config.seed,script_round=script_round)
-    
+    preload_product = lark_util.retrieve_live_script(config_id=config_id, sheet_id=script_config.product_sheet,
+                                                     src_range=script_config.product_range, seed=script_config.seed,
+                                                     script_round=script_round)
+
     # 把新脚本的item 入队进行llm处理
     for _, val in enumerate(preload_product.item_list):
         await llm_query(val)
@@ -690,10 +697,14 @@ async def retrieve_live_script():
 
 def start_bit_browser():
     global script_config
-    global du, script_config
-    browser_id = bit_api.get_id_by_name(script_config.room_name)
-    driver, _ = chrome_utils.get_driver(browser_id)
-    if driver:
-        du = driver_utils.DriverUtils(driver)
-        driver.switch_to.window(driver.window_handles[0])
-        du.open_url(script_config.live_address)
+    global du, script_config, driver
+    driver = None
+    try:
+        browser_id = bit_api.get_id_by_name(script_config.room_name)
+        driver, _ = chrome_utils.get_driver(browser_id)
+        if driver:
+            du = driver_utils.DriverUtils(driver)
+            driver.switch_to.window(driver.window_handles[0])
+            du.open_url(script_config.live_address[0]["link"])
+    except Exception as e:
+        print(f"start_bit_browser:{e}")

@@ -35,6 +35,7 @@ if __name__ == '__main__':
                     rotation = get_rotation_metadata(src)
 
                     if rotation != 0:
+                        print(f"=== process {file}")
                         dst = os.path.join(root, file.replace(".MOV", "_.MOV").replace(".mov", "_.mov"))
                         template_ffmpeg.process([
                             "-i",

@@ -2,3 +2,5 @@
 .idea/
 remote_config/script_*/
 /log/
+/obs_video_cache
+/obs_audio_cache

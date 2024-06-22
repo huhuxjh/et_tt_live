@@ -1,3 +1,4 @@
+import random
 import re
 import uuid
 
@@ -104,5 +105,9 @@ async def tts_async(text, ref_name, out_name, spc_type, language="english"):
         "skip_refine_text": False
     }
     response = await post_retry(url, headers, data)
-    resp_json = json.loads(response.text)
-    return resp_json['path']
+    try:
+        resp_json = json.loads(response.text)
+        return resp_json['path']
+    except Exception as e:
+        print(f"tts_async error = {e}")
+        return None
