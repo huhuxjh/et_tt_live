@@ -29,6 +29,8 @@ from remote_config.et_service_util import tts_async
 from selenium.webdriver.common.by import By
 from bean.obs_item_wrapper import ObsItemWrapper
 
+my_name = "weiwei_one_day"
+
 last_chat_message = ""
 last_social_message = ""
 last_enter_message = ""
@@ -39,6 +41,8 @@ last_social_message_time = 0
 social_message_min_period = 20
 enter_message_min_period = 20
 
+check_message_error_count = 0
+
 last_play_effect_time = 0
 
 query_queue = queue.Queue()
@@ -47,7 +51,7 @@ tts_queue = queue.Queue()
 # 公屏队列
 text_queue = queue.Queue()
 
-urgent_tts_queue = queue.Queue(maxsize=10)
+urgent_tts_queue = queue.Queue(maxsize=5)
 
 # 最近播放的OBS视频
 last_obs_queue = deque()
@@ -56,7 +60,7 @@ obs_queue = []
 
 obs_wrapper = None
 
-welcome_list = ["welcome", "hi", "hello, welcome to the live stream"]
+welcome_list = ["welcome", "hi", "hello, welcome to the live stream", "hello"]
 
 followed_list = ["Appreciate the followed", "Appreciate the followed, thank you very much"]
 
@@ -65,7 +69,6 @@ shared_list = ["Appreciate the shared", "Thank you for sharing the live stream"]
 
 async def list_prepare_tts_task():
     for _, val in enumerate(product_script.item_list):
-        # wav = os.path.join(outputs_v2, f'{config_id}{os.path.sep}tts_{val.index}_{device_index}.wav')
         wav = val.wav
         print(f"product_script wav:{wav}")
         if os.path.exists(wav):
@@ -74,7 +77,7 @@ async def list_prepare_tts_task():
 
 
 async def check_comment():
-    global last_chat_message, script_config, receive_browser_m
+    global last_chat_message, script_config, receive_browser_m, my_name
     # 获取普通聊天List
     try:
         print(f"check_comment")
@@ -90,9 +93,10 @@ async def check_comment():
         owner_name = chat_message.find_element(by=By.CSS_SELECTOR, value='span[data-e2e="message-owner-name"]').text
         comment = chat_message.find_element(by=By.CSS_SELECTOR, value='div.css-1kue6t3-DivComment').text
         print(f" check_comment live room comment:{comment}")
+        if owner_name == my_name:
+            return
     except Exception as e:
         print(f"check_comment exception:{e}")
-
         return
     if owner_name + comment != last_chat_message:
         print(f"chat {owner_name} -> {comment}")
@@ -102,7 +106,7 @@ async def check_comment():
 
 
 async def check_social():
-    global last_social_message, last_social_message_time, receive_browser_m
+    global last_social_message, last_social_message_time, receive_browser_m, my_name
 
     current_timestamp = time.time()
     # 开播20秒后才开始
@@ -125,6 +129,8 @@ async def check_social():
         social_text = social_message.find_element(by=By.CSS_SELECTOR,
                                                   value='div[data-e2e="social-message-text"]').get_attribute(
             "textContent")
+        if social_owner_name == my_name:
+            return
     except Exception:
         return
     # 分享： "shared the LIVE video"
@@ -136,22 +142,20 @@ async def check_social():
         last_social_message = social_owner_name + social_text
         last_social_message_time = current_timestamp
         if social_text.__contains__('shared the LIVE video'):
-            index = random.randrange(0, 1)
-            if index == 0:
+            if should_use_tts_for_active():
                 await create_tts_for_active(f"{random.choice(shared_list)}, {social_owner_name}")
             else:
                 text_queue.put(f"{random.choice(shared_list)}, {social_owner_name}")
 
         if social_text.__contains__('followed the host'):
-            index = random.randrange(0, 1)
-            if index == 0:
+            if should_use_tts_for_active():
                 await create_tts_for_active(f"{random.choice(followed_list)}, {social_owner_name}")
             else:
                 text_queue.put(f"{random.choice(followed_list)}, {social_owner_name}")
 
 
 async def check_enter():
-    global last_enter_message, last_enter_message_time, receive_browser_m
+    global last_enter_message, last_enter_message_time, receive_browser_m, my_name, check_message_error_count
     current_timestamp = time.time()
     # 开场10秒后才开始
     if last_enter_message_time == 0:
@@ -171,7 +175,14 @@ async def check_enter():
         # 获取message中的owner_name 和 comment
         enter_owner_name = enter_message.find_element(by=By.CSS_SELECTOR,
                                                       value='span[data-e2e="message-owner-name"]').text
-    except Exception:
+        if enter_owner_name == my_name:
+            return
+    except Exception as e:
+        check_message_error_count = check_message_error_count + 1
+        if check_message_error_count > 5:
+            receive_browser_m = False
+            check_message_error_count = 0
+        print(f"check_enter exception:{e}")
         return
     enter_text = "joined"
     print(f'enter_message enter_owner_name {enter_owner_name}, last_enter_message {last_enter_message}')
@@ -180,11 +191,34 @@ async def check_enter():
         print(f"join {enter_owner_name} -> {enter_text}")
         last_enter_message = enter_owner_name
         last_enter_message_time = current_timestamp
-        index = random.randrange(0, 1)
-        if index == 0:
+        if should_use_tts_for_active():
             await create_tts_for_active(f"{random.choice(welcome_list)}, {enter_owner_name}")
         else:
+            print("text_queue put check enter")
             text_queue.put(f"{random.choice(welcome_list)}, {enter_owner_name}")
+            print(f"text_queue put size:{text_queue.qsize()}")
+
+
+def should_use_tts_for_active():
+    print(f"should_use_tts_for_active:{urgent_tts_queue.qsize()}")
+    if urgent_tts_queue.qsize() > 1:
+        return False
+    else:
+        return True
+
+
+def check_room_has_message():
+    try:
+        # 获取进场消息
+        enter_message_list = du.find_css_elements('div[data-e2e="enter-message"]')
+        # 获取最近的一条enter_message
+        enter_message = enter_message_list[-1]
+        if enter_message is None:
+            return False
+        else:
+            return True
+    except Exception as e:
+        return False
 
 
 # 互动的llm查询
@@ -194,11 +228,14 @@ async def llm_query_for_active(query):
     # 在脚本过程中，query只是内容，sys_inst是指令
     sys_inst = product_script.sys_inst
     role_play = product_script.role_play
-    max_num_sentence = 8
+    max_num_sentence = 3
     with timer('qa-llama_v3'):
-        an = await llm_async(query, role_play, context, sys_inst, max_num_sentence, 1.05)
+        an = await llm_async("", role_play, context, query, max_num_sentence, 1.05)
     print(f"llm_query_for_active an:{an}")
-    await create_tts_for_active(an)
+    if urgent_tts_queue.qsize() > 2:
+        text_queue.put(an)
+    else:
+        await create_tts_for_active(an)
 
 
 async def create_tts_for_active(content):
@@ -236,7 +273,7 @@ async def send_message(content):
     try:
         du.input_value_by_css('div[data-e2e="comment-text"]', content)
         sendButton = du.find_css_element('div[data-e2e="comment-post"]')
-        du.click_by_element(sendButton)
+        # du.click_by_element(sendButton)
     except Exception:
         print("send_message error")
         return
@@ -280,7 +317,10 @@ async def send_message_task():
     while True:
         print(f"send_message_task check: text_queue.size ={text_queue.qsize()}")
         if not text_queue.empty():
+            print(f"send_message_task check: before get")
             message = text_queue.get()
+            print(f"send_message_task check: message {message}")
+
             await send_message(message)
         await asyncio.sleep(1)
 
@@ -290,7 +330,8 @@ async def refresh_browser():
     receive_browser_m = False
     print(f"refresh_browser receive_browser_m:{receive_browser_m}")
     while not receive_browser_m:
-        if driver:
+        has_message = check_room_has_message()
+        if driver and not has_message:
             try:
                 url = script_config.live_address[0]["link"]
                 print(f"refresh_browser:{url}")
@@ -401,12 +442,11 @@ def play_audio(callback):
     # 输出设备
     from sounddevice_wrapper import SOUND_DEVICE_NAME
     device_list = SOUND_DEVICE_NAME
-    # 如果配置了设备名字，那么通过name_to_index去转换index，保证设备名唯一
-    # device_index = name_to_index(device_name)
-    label = ""
     print(f"urgent_tts_queue, size:{urgent_tts_queue.qsize()}")
     if not urgent_tts_queue.empty():
         wav = urgent_tts_queue.get()
+        label = random.choice(product_script.item_list).vid_label
+        print(f"active tts, add random label:{label}")
     else:
         content_item = tts_queue.get()
         wav = content_item.wav
