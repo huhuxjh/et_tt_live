@@ -437,8 +437,8 @@ def get_wav_dur(wav):
     return duration
 
 
-def play_audio(callback):
-    print("play_audio")
+def play_audio_a(callback):
+    print("play_audio_a")
     global need_switch
     # 输出设备
     from sounddevice_wrapper import SOUND_DEVICE_NAME
@@ -459,11 +459,37 @@ def play_audio(callback):
     if obs_wrapper:
         drive_video(wav, label)
     if obs_wrapper:
-        print(str(time.time()) + f"play_audio  -->  {wav}")
-        obs_wrapper.play_audio(wav=wav, callback=callback)
+        print(str(time.time()) + f"play_audio_a  -->  {wav}")
+        obs_wrapper.play_audio_a(wav=wav, callback=callback)
     else:
         play_wav_on_device(wav=wav, device=device)
         if callback: callback()
+
+def play_audio_b(callback):
+    print("play_audio_b")
+    # global need_switch
+    # # 输出设备
+    # from sounddevice_wrapper import SOUND_DEVICE_NAME
+    # device_list = SOUND_DEVICE_NAME
+    # print(f"urgent_tts_queue, size:{urgent_tts_queue.qsize()}")
+    # if not urgent_tts_queue.empty():
+    #     wav = urgent_tts_queue.get()
+    #     label = random.choice(product_script.item_list).vid_label
+    #     print(f"active tts, add random label:{label}")
+    # else:
+    #     content_item = tts_queue.get()
+    #     wav = content_item.wav
+    #     label = content_item.vid_label
+    #     if content_item.index == len(product_script.item_list):
+    #         need_switch = True
+    # print(f"end to get tts queue, size:{tts_queue.qsize()}, wav:{wav} {time.time()}")
+    # device = device_list[device_index]
+    # if obs_wrapper:
+    #     print(str(time.time()) + f"play_audio_b  -->  {wav}")
+    #     obs_wrapper.play_audio_b(wav=wav, callback=callback)
+    # else:
+    #     play_wav_on_device(wav=wav, device=device)
+    #     if callback: callback()
 
 
 def play_video(callback):
@@ -675,9 +701,13 @@ def play_wav_cycle():
         while True:
             try:
                 if obs_wrapper:
-                    a1, a2 = obs_wrapper.get_audio_status()
+                    a1, a2 = obs_wrapper.get_audio_status_a()
                     if a2 == 0 or (a2 - a1) == 0:
-                        play_audio(None)
+                        play_audio_a(None)
+                        
+                    a1, a2 = obs_wrapper.get_audio_status_b()
+                    if a2 == 0 or (a2 - a1) == 0:
+                        play_audio_b(None)
 
                     v1, v2 = obs_wrapper.get_video_status()
                     if v2 == 0 or (v2 - v1) == 0:
@@ -686,7 +716,7 @@ def play_wav_cycle():
                     play_random_effect()
 
                 else:
-                    play_audio(None)
+                    play_audio_a(None)
             except soundfile.LibsndfileError as ignore:
                 print(ignore)
             time.sleep(random.uniform(0.5, 1))
